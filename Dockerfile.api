@@ -1,0 +1,34 @@
+# Dockerfile for Basilisk API Server
+FROM python:3.10-slim
+
+WORKDIR /app
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    libgl1-mesa-glx \
+    libglib2.0-0 \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy requirements
+COPY poison-core/requirements.txt /app/poison-core/
+COPY api/requirements.txt /app/api/
+
+# Install Python dependencies
+RUN pip install --no-cache-dir -r /app/poison-core/requirements.txt
+RUN pip install --no-cache-dir -r /app/api/requirements.txt
+
+# Copy source code
+COPY poison-core/ /app/poison-core/
+COPY api/ /app/api/
+
+# Create temp directory for processing
+RUN mkdir -p /tmp/basilisk
+
+# Expose API port
+EXPOSE 5000
+
+# Set Python path
+ENV PYTHONPATH=/app
+
+# Run API server
+CMD ["python", "/app/api/server.py"]

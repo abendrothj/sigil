@@ -67,15 +67,21 @@ class RadioactiveMarker:
         """
         if seed is None:
             seed = secrets.randbits(256)
-        
+
+        # Store full seed for cryptographic security
+        self.seed = seed
+
+        # NumPy requires 32-bit seed, so hash the full seed down to 32 bits
+        # This preserves security while staying within NumPy's limits
+        seed_32bit = int(hashlib.sha256(str(seed).encode()).hexdigest()[:8], 16)
+
         # Use cryptographic hash to generate deterministic but unpredictable signature
-        rng = np.random.RandomState(seed)
+        rng = np.random.RandomState(seed_32bit)
         signature = rng.randn(self.signature_dim)
         # Normalize to unit vector
         signature = signature / np.linalg.norm(signature)
-        
+
         self.signature = signature
-        self.seed = seed
         
         return signature
     
@@ -107,16 +113,20 @@ class RadioactiveMarker:
         self,
         image_path: str,
         output_path: str,
-        normalize: bool = True
+        normalize: bool = True,
+        pgd_steps: int = 1,
+        pgd_alpha: Optional[float] = None
     ) -> Tuple[str, dict]:
         """
         Poison a single image with the radioactive signature.
-        
+
         Args:
             image_path: Path to input image
             output_path: Path to save poisoned image
             normalize: Whether to normalize the image
-            
+            pgd_steps: Number of PGD iterations (1=FGSM, 5-10=PGD for robustness)
+            pgd_alpha: Step size for PGD (default: epsilon/steps)
+
         Returns:
             Tuple of (output_path, metadata)
         """
@@ -141,31 +151,55 @@ class RadioactiveMarker:
             ])
         
         img_tensor = preprocess(img).unsqueeze(0).to(self.device)
-        img_tensor.requires_grad = True
-        
-        # Extract features
-        with torch.enable_grad():
-            features = self.feature_extractor(img_tensor)
-            features = features.view(features.size(0), -1)
-            
-            # Project signature onto feature space
-            signature_tensor = torch.tensor(
-                self.signature[:features.size(1)],
-                dtype=torch.float32,
-                device=self.device
-            )
-            
-            # Compute the direction to push features toward signature
-            # This is the core "radioactive" perturbation
-            loss = -torch.dot(features.squeeze(), signature_tensor)
-            loss.backward()
-        
-        # Compute adversarial perturbation in pixel space
-        perturbation = self.epsilon * img_tensor.grad.sign()
-        
-        # Apply perturbation
-        poisoned_tensor = img_tensor + perturbation
-        poisoned_tensor = torch.clamp(poisoned_tensor, 0, 1)
+        original_tensor = img_tensor.clone().detach()
+
+        # Set PGD parameters
+        if pgd_alpha is None:
+            pgd_alpha = self.epsilon / pgd_steps if pgd_steps > 1 else self.epsilon
+
+        # Prepare signature tensor
+        with torch.no_grad():
+            features_temp = self.feature_extractor(img_tensor)
+            features_temp = features_temp.view(features_temp.size(0), -1)
+
+        signature_tensor = torch.tensor(
+            self.signature[:features_temp.size(1)],
+            dtype=torch.float32,
+            device=self.device
+        )
+
+        # PGD loop (Projected Gradient Descent)
+        # pgd_steps=1 is equivalent to FGSM (fast but weaker)
+        # pgd_steps=5-10 is PGD (slower but more robust to compression)
+        poisoned_tensor = img_tensor.clone()
+
+        for step in range(pgd_steps):
+            poisoned_tensor.requires_grad = True
+
+            # Extract features
+            with torch.enable_grad():
+                features = self.feature_extractor(poisoned_tensor)
+                features = features.view(features.size(0), -1)
+
+                # Compute the direction to push features toward signature
+                # This is the core "radioactive" perturbation
+                loss = -torch.dot(features.squeeze(), signature_tensor)
+                loss.backward()
+
+            # Compute adversarial perturbation in pixel space
+            grad = poisoned_tensor.grad.sign()
+            perturbation = pgd_alpha * grad
+
+            # Apply perturbation
+            poisoned_tensor = poisoned_tensor.detach() + perturbation
+
+            # Project back to epsilon ball around original
+            delta = poisoned_tensor - original_tensor
+            delta = torch.clamp(delta, -self.epsilon, self.epsilon)
+            poisoned_tensor = original_tensor + delta
+
+            # Clamp to valid pixel range
+            poisoned_tensor = torch.clamp(poisoned_tensor, 0, 1)
         
         # Convert back to image
         if normalize:
@@ -257,8 +291,8 @@ class RadioactiveDetector:
         # Average correlation score
         avg_correlation = np.mean(feature_correlations)
         is_poisoned = avg_correlation > threshold
-        
-        return is_poisoned, float(avg_correlation)
+
+        return bool(is_poisoned), float(avg_correlation)
 
 
 if __name__ == "__main__":

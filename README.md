@@ -10,39 +10,56 @@
 
 ---
 
-## 🚀 Quick Start (5 minutes)
+## 🚀 Quick Start
 
-### 1. Clone and Setup
+### Option 1: Docker (Easiest - 2 minutes)
+
+```bash
+git clone https://github.com/abendrothj/basilisk.git
+cd basilisk
+docker-compose up
+```
+
+**That's it!** Visit http://localhost:3000
+
+See [DOCKER_QUICKSTART.md](DOCKER_QUICKSTART.md) for details.
+
+### Option 2: Local Setup (Developers)
 
 ```bash
 git clone https://github.com/abendrothj/basilisk.git
 cd basilisk
 chmod +x setup.sh run_api.sh run_web.sh
 ./setup.sh
-```
 
-### 2. Poison Your First Image (CLI)
-
-```bash
-source venv/bin/activate
-python poison-core/poison_cli.py poison my_art.jpg protected_art.jpg
-```
-
-**Output:** `protected_art.jpg` (poisoned) + `protected_art_signature.json` (proof of ownership)
-
-### 3. Use the Web Interface
-
-**Terminal 1 - Start API:**
-```bash
+# Terminal 1: Start API
 ./run_api.sh
-```
 
-**Terminal 2 - Start Web UI:**
-```bash
+# Terminal 2: Start Web UI
 ./run_web.sh
 ```
 
-**Visit:** http://localhost:3000
+Visit http://localhost:3000
+
+### Option 3: CLI Only (No Web UI)
+
+```bash
+git clone https://github.com/abendrothj/basilisk.git
+cd basilisk
+./setup.sh
+source venv/bin/activate
+
+# Poison single image
+python poison-core/poison_cli.py poison my_art.jpg protected_art.jpg
+
+# Robust mode (PGD - survives compression better)
+python poison-core/poison_cli.py poison my_art.jpg protected_art.jpg --pgd-steps 5
+
+# Batch process folder
+python poison-core/poison_cli.py batch ./my_portfolio/ ./protected/
+```
+
+**Output:** Poisoned images + signature files for detection
 
 ---
 
@@ -220,12 +237,25 @@ signature = SHA256(seed) → 512-dimensional unit vector
 - [x] Detection algorithm
 - [ ] Performance optimization (GPU acceleration)
 
-### Phase 2: Video 🚧 (Weeks 7-12)
-- [ ] Optical flow extraction
-- [ ] Temporal signature encoding
+### Phase 2: Video 🚧 BETA (Weeks 7-12)
+- [x] Optical flow extraction (Farneback algorithm)
+- [x] Temporal signature encoding (cyclic sine wave)
+- [x] CLI tool for video poisoning
+- [x] Per-frame poisoning method
+- [x] Optical flow poisoning method (NOVEL)
 - [ ] Video compression robustness testing
+- [ ] Detection algorithm for video models
 - [ ] GPU worker infrastructure (Modal.com)
-- [ ] "Sora Defense" beta release
+- [ ] Web UI integration
+- [ ] "Sora Defense" public beta
+
+**Try it now:**
+```bash
+python poison-core/video_poison_cli.py poison input.mp4 output.mp4
+python poison-core/demo_video.py  # Run demo
+```
+
+See [VIDEO_APPROACH.md](docs/VIDEO_APPROACH.md) for technical details.
 
 ### Phase 3: Multi-Modal (Month 4+)
 - [ ] Code protection (ACW integration)
@@ -285,4 +315,3 @@ This is a defensive tool for protecting creative work. Users are responsible for
 ---
 
 **Built with ❤️ for artists, creators, and everyone fighting for their rights in the age of AI.**
-

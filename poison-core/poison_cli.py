@@ -27,9 +27,10 @@ def cli():
 @click.argument('input_image', type=click.Path(exists=True))
 @click.argument('output_image', type=click.Path())
 @click.option('--epsilon', default=0.01, help='Perturbation strength (0.005-0.05)')
+@click.option('--pgd-steps', default=1, help='PGD iterations (1=FGSM, 5-10=robust PGD)')
 @click.option('--signature', default=None, type=click.Path(), help='Use existing signature file')
 @click.option('--device', default='cpu', type=click.Choice(['cpu', 'cuda']), help='Device to use')
-def poison(input_image, output_image, epsilon, signature, device):
+def poison(input_image, output_image, epsilon, pgd_steps, signature, device):
     """
     Poison a single image.
     
@@ -38,7 +39,8 @@ def poison(input_image, output_image, epsilon, signature, device):
     """
     click.echo(f"🐍 Basilisk - Poisoning {input_image}")
     click.echo(f"   Epsilon: {epsilon}")
-    
+    click.echo(f"   PGD Steps: {pgd_steps} {'(FGSM - fast)' if pgd_steps == 1 else '(PGD - robust)'}")
+
     # Initialize marker
     marker = RadioactiveMarker(epsilon=epsilon, device=device)
     
@@ -56,7 +58,7 @@ def poison(input_image, output_image, epsilon, signature, device):
     
     # Poison the image
     try:
-        output_path, metadata = marker.poison_image(input_image, output_image)
+        output_path, metadata = marker.poison_image(input_image, output_image, pgd_steps=pgd_steps)
         click.echo(f"✅ Poisoned image saved to {output_path}")
         click.echo(f"   Signature ID: {metadata['signature_id']}")
         

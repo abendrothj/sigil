@@ -29,11 +29,13 @@ def client():
 @pytest.fixture
 def test_image():
     """Create a test image in memory"""
-    img = Image.new('RGB', (224, 224), color='blue')
-    img_bytes = io.BytesIO()
-    img.save(img_bytes, format='JPEG')
-    img_bytes.seek(0)
-    return img_bytes
+    def _create_image():
+        img = Image.new('RGB', (224, 224), color='blue')
+        img_bytes = io.BytesIO()
+        img.save(img_bytes, format='JPEG')
+        img_bytes.seek(0)
+        return img_bytes
+    return _create_image
 
 
 class TestHealthEndpoint:
@@ -56,7 +58,7 @@ class TestPoisonEndpoint:
     def test_poison_success(self, client, test_image):
         """Test successful image poisoning"""
         data = {
-            'image': (test_image, 'test.jpg'),
+            'image': (test_image(), 'test.jpg'),
             'epsilon': '0.01'
         }
 
@@ -96,7 +98,7 @@ class TestPoisonEndpoint:
     def test_poison_invalid_epsilon(self, client, test_image):
         """Test poisoning with invalid epsilon"""
         data = {
-            'image': (test_image, 'test.jpg'),
+            'image': (test_image(), 'test.jpg'),
             'epsilon': '0.1'  # Too large
         }
 
@@ -114,7 +116,7 @@ class TestPoisonEndpoint:
     def test_poison_default_epsilon(self, client, test_image):
         """Test poisoning with default epsilon"""
         data = {
-            'image': (test_image, 'test.jpg')
+            'image': (test_image(), 'test.jpg')
             # No epsilon provided
         }
 
@@ -172,11 +174,8 @@ class TestPoisonEndpoint:
         epsilons = ['0.005', '0.01', '0.02', '0.05']
 
         for eps in epsilons:
-            # Reset BytesIO position
-            test_image.seek(0)
-
             data = {
-                'image': (test_image, 'test.jpg'),
+                'image': (test_image(), 'test.jpg'),
                 'epsilon': eps
             }
 
@@ -362,7 +361,7 @@ class TestResponseFormat:
     def test_success_response_structure(self, client, test_image):
         """Test structure of successful response"""
         data = {
-            'image': (test_image, 'test.jpg'),
+            'image': (test_image(), 'test.jpg'),
             'epsilon': '0.01'
         }
 
@@ -396,7 +395,7 @@ class TestResponseFormat:
     def test_content_type_json(self, client, test_image):
         """Test that response is JSON"""
         data = {
-            'image': (test_image, 'test.jpg'),
+            'image': (test_image(), 'test.jpg'),
             'epsilon': '0.01'
         }
 
@@ -415,7 +414,7 @@ class TestCORS:
     def test_cors_headers_present(self, client, test_image):
         """Test that CORS headers are present"""
         data = {
-            'image': (test_image, 'test.jpg'),
+            'image': (test_image(), 'test.jpg'),
             'epsilon': '0.01'
         }
 

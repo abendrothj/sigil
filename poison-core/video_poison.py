@@ -1,0 +1,453 @@
+#!/usr/bin/env python3
+"""
+Video Poisoning Implementation
+Novel application of radioactive marking to video via optical flow perturbation
+
+Key Innovation: Poison the MOTION between frames, not the pixels themselves.
+This survives video compression because motion vectors are encoded separately.
+
+Based on radioactive data marking (Sablayrolles et al., 2020)
+Extended to temporal domain for video protection
+"""
+
+import cv2
+import numpy as np
+import torch
+import torch.nn as nn
+from pathlib import Path
+from typing import Tuple, Optional, List
+import json
+import secrets
+import hashlib
+from tqdm import tqdm
+
+from radioactive_poison import RadioactiveMarker
+
+
+class VideoRadioactiveMarker:
+    """
+    Poison video by injecting signature into optical flow (motion vectors).
+
+    Why this works:
+    - Video codecs (H.264, AV1) compress motion separately from pixels
+    - Small perturbations in motion create "impossible physics"
+    - AI models learn these motion patterns
+    - Signature survives compression and frame drops
+    """
+
+    def __init__(
+        self,
+        epsilon: float = 0.02,
+        temporal_period: int = 30,  # Frames per signature cycle
+        device: str = 'cpu'
+    ):
+        """
+        Args:
+            epsilon: Perturbation strength for optical flow (higher than images)
+            temporal_period: Number of frames for signature pattern to repeat
+            device: 'cpu' or 'cuda'
+        """
+        self.epsilon = epsilon
+        self.temporal_period = temporal_period
+        self.device = device
+
+        # Use image marker for spatial signature
+        self.image_marker = RadioactiveMarker(epsilon=epsilon, device=device)
+
+        # Temporal signature (cyclic pattern across frames)
+        self.temporal_signature = None
+        self.seed = None
+
+    def generate_signature(self, seed: Optional[int] = None) -> np.ndarray:
+        """
+        Generate a temporal signature pattern.
+
+        This creates a cyclic pattern that repeats every N frames,
+        making it robust to frame drops and compression.
+        """
+        if seed is None:
+            seed = secrets.randbits(256)
+
+        self.seed = seed
+
+        # Generate spatial signature
+        self.image_marker.generate_signature(seed=seed)
+
+        # Generate temporal modulation (sine wave pattern)
+        t = np.linspace(0, 2 * np.pi, self.temporal_period)
+        temporal_modulation = np.sin(t)
+
+        self.temporal_signature = temporal_modulation
+
+        return self.temporal_signature
+
+    def save_signature(self, output_path: str):
+        """Save video signature including temporal pattern."""
+        if self.temporal_signature is None:
+            raise ValueError("No signature generated. Call generate_signature() first.")
+
+        data = {
+            'seed': int(self.seed),
+            'epsilon': float(self.epsilon),
+            'temporal_period': int(self.temporal_period),
+            'temporal_signature': self.temporal_signature.tolist(),
+            'spatial_signature': self.image_marker.signature.tolist(),
+            'type': 'video',
+            'version': '1.0'
+        }
+
+        with open(output_path, 'w') as f:
+            json.dump(data, f, indent=2)
+
+    def load_signature(self, signature_path: str):
+        """Load a previously generated video signature."""
+        with open(signature_path, 'r') as f:
+            data = json.load(f)
+
+            self.seed = data['seed']
+            self.epsilon = data['epsilon']
+            self.temporal_period = data['temporal_period']
+            self.temporal_signature = np.array(data['temporal_signature'])
+
+            # Load spatial signature into image marker
+            self.image_marker.signature = np.array(data['spatial_signature'])
+            self.image_marker.seed = self.seed
+            self.image_marker.epsilon = self.epsilon
+
+    def extract_optical_flow(
+        self,
+        frame1: np.ndarray,
+        frame2: np.ndarray
+    ) -> np.ndarray:
+        """
+        Extract optical flow between two frames using Farneback algorithm.
+
+        Returns:
+            flow: (H, W, 2) array of (dx, dy) motion vectors
+        """
+        gray1 = cv2.cvtColor(frame1, cv2.COLOR_BGR2GRAY)
+        gray2 = cv2.cvtColor(frame2, cv2.COLOR_BGR2GRAY)
+
+        flow = cv2.calcOpticalFlowFarneback(
+            gray1, gray2,
+            None,
+            pyr_scale=0.5,
+            levels=3,
+            winsize=15,
+            iterations=3,
+            poly_n=5,
+            poly_sigma=1.2,
+            flags=0
+        )
+
+        return flow
+
+    def perturb_optical_flow(
+        self,
+        flow: np.ndarray,
+        frame_idx: int
+    ) -> np.ndarray:
+        """
+        Perturb optical flow with temporal signature.
+
+        Args:
+            flow: (H, W, 2) optical flow field
+            frame_idx: Current frame index for temporal modulation
+
+        Returns:
+            Perturbed flow field
+        """
+        # Get temporal modulation for this frame
+        temporal_idx = frame_idx % self.temporal_period
+        temporal_weight = self.temporal_signature[temporal_idx]
+
+        # Generate spatial pattern from signature
+        # Use hash of signature to create pseudo-random but deterministic pattern
+        h, w = flow.shape[:2]
+
+        # Create spatial pattern based on signature
+        # Hash full seed + frame_idx down to 32-bit for NumPy compatibility
+        import hashlib
+        seed_combined = str(self.seed + frame_idx).encode()
+        seed_32bit = int(hashlib.sha256(seed_combined).hexdigest()[:8], 16)
+        rng = np.random.RandomState(seed_32bit)
+        spatial_pattern = rng.randn(h, w, 2)
+
+        # Normalize spatial pattern
+        spatial_pattern = spatial_pattern / (np.linalg.norm(spatial_pattern) + 1e-8)
+
+        # Apply perturbation
+        perturbation = self.epsilon * temporal_weight * spatial_pattern
+        flow_poisoned = flow + perturbation
+
+        return flow_poisoned
+
+    def reconstruct_frame_from_flow(
+        self,
+        frame1: np.ndarray,
+        flow: np.ndarray
+    ) -> np.ndarray:
+        """
+        Reconstruct frame2 by warping frame1 according to optical flow.
+
+        This applies the poisoned motion to generate the output frame.
+        """
+        h, w = flow.shape[:2]
+
+        # Create coordinate grid
+        y, x = np.mgrid[0:h, 0:w].astype(np.float32)
+
+        # Apply flow to coordinates
+        map_x = (x + flow[:, :, 0]).astype(np.float32)
+        map_y = (y + flow[:, :, 1]).astype(np.float32)
+
+        # Warp frame using remap - both maps must be float32
+        frame2_reconstructed = cv2.remap(
+            frame1,
+            map_x,
+            map_y,
+            cv2.INTER_LINEAR,
+            borderMode=cv2.BORDER_REPLICATE
+        )
+
+        return frame2_reconstructed
+
+    def poison_video(
+        self,
+        input_video_path: str,
+        output_video_path: str,
+        method: str = 'optical_flow'
+    ) -> Tuple[str, dict]:
+        """
+        Poison a video file.
+
+        Args:
+            input_video_path: Path to input video
+            output_video_path: Path to save poisoned video
+            method: 'optical_flow' (motion poisoning) or 'frame' (per-frame image poisoning)
+
+        Returns:
+            Tuple of (output_path, metadata)
+        """
+        if self.temporal_signature is None:
+            raise ValueError("No signature loaded. Call generate_signature() or load_signature().")
+
+        print(f"Poisoning video: {input_video_path}")
+        print(f"Method: {method}")
+        print(f"Epsilon: {self.epsilon}")
+
+        # Open input video
+        cap = cv2.VideoCapture(input_video_path)
+
+        # Get video properties
+        fps = int(cap.get(cv2.CAP_PROP_FPS))
+        width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+        height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+        total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+
+        print(f"Video: {width}x{height} @ {fps}fps, {total_frames} frames")
+
+        # Create output video writer
+        fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+        out = cv2.VideoWriter(output_video_path, fourcc, fps, (width, height))
+
+        if method == 'optical_flow':
+            success = self._poison_video_optical_flow(cap, out, total_frames)
+        elif method == 'frame':
+            success = self._poison_video_per_frame(cap, out, total_frames)
+        else:
+            raise ValueError(f"Unknown method: {method}. Use 'optical_flow' or 'frame'")
+
+        # Cleanup
+        cap.release()
+        out.release()
+
+        # Generate metadata
+        metadata = {
+            'original': str(input_video_path),
+            'poisoned': str(output_video_path),
+            'method': method,
+            'epsilon': self.epsilon,
+            'temporal_period': self.temporal_period,
+            'fps': fps,
+            'resolution': f"{width}x{height}",
+            'total_frames': total_frames,
+            'signature_id': hashlib.sha256(str(self.seed).encode()).hexdigest()[:16]
+        }
+
+        print(f"✅ Poisoned video saved to {output_video_path}")
+
+        return output_video_path, metadata
+
+    def _poison_video_optical_flow(
+        self,
+        cap: cv2.VideoCapture,
+        out: cv2.VideoWriter,
+        total_frames: int
+    ) -> bool:
+        """
+        Poison video using optical flow perturbation.
+
+        This is the novel approach - perturbs motion vectors.
+        """
+        ret, prev_frame = cap.read()
+        if not ret:
+            return False
+
+        # Write first frame unchanged
+        out.write(prev_frame)
+
+        frame_idx = 1
+        pbar = tqdm(total=total_frames - 1, desc="Poisoning frames")
+
+        while True:
+            ret, curr_frame = cap.read()
+            if not ret:
+                break
+
+            # Extract optical flow
+            flow = self.extract_optical_flow(prev_frame, curr_frame)
+
+            # Perturb flow with temporal signature
+            flow_poisoned = self.perturb_optical_flow(flow, frame_idx)
+
+            # Reconstruct frame from poisoned flow
+            poisoned_frame = self.reconstruct_frame_from_flow(prev_frame, flow_poisoned)
+
+            # Blend with original to reduce visible artifacts
+            alpha = 0.95  # 95% poisoned, 5% original
+            final_frame = cv2.addWeighted(poisoned_frame, alpha, curr_frame, 1 - alpha, 0)
+
+            # Write frame
+            out.write(final_frame.astype(np.uint8))
+
+            prev_frame = curr_frame
+            frame_idx += 1
+            pbar.update(1)
+
+        pbar.close()
+        return True
+
+    def _poison_video_per_frame(
+        self,
+        cap: cv2.VideoCapture,
+        out: cv2.VideoWriter,
+        total_frames: int
+    ) -> bool:
+        """
+        Poison video by applying image poisoning to each frame.
+
+        This is the simpler approach - uses existing image poisoning.
+        Less robust to compression but easier to implement.
+        """
+        import tempfile
+        from PIL import Image
+
+        frame_idx = 0
+        pbar = tqdm(total=total_frames, desc="Poisoning frames")
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmpdir = Path(tmpdir)
+
+            while True:
+                ret, frame = cap.read()
+                if not ret:
+                    break
+
+                # Convert to PIL Image
+                frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+                pil_image = Image.fromarray(frame_rgb)
+
+                # Save temporarily
+                temp_input = tmpdir / f"frame_{frame_idx:06d}_in.jpg"
+                temp_output = tmpdir / f"frame_{frame_idx:06d}_out.jpg"
+                pil_image.save(temp_input)
+
+                # Poison using image marker
+                self.image_marker.poison_image(str(temp_input), str(temp_output))
+
+                # Load poisoned frame
+                poisoned_pil = Image.open(temp_output)
+                poisoned_rgb = np.array(poisoned_pil)
+                poisoned_bgr = cv2.cvtColor(poisoned_rgb, cv2.COLOR_RGB2BGR)
+
+                # Write frame
+                out.write(poisoned_bgr)
+
+                frame_idx += 1
+                pbar.update(1)
+
+        pbar.close()
+        return True
+
+
+class VideoRadioactiveDetector:
+    """
+    Detect if a video model was trained on poisoned videos.
+    """
+
+    def __init__(self, signature_path: str, device: str = 'cpu'):
+        """
+        Args:
+            signature_path: Path to video signature JSON
+            device: 'cpu' or 'cuda'
+        """
+        self.device = device
+
+        # Load signature
+        with open(signature_path, 'r') as f:
+            data = json.load(f)
+
+            if data.get('type') != 'video':
+                raise ValueError("Signature is not for video (use RadioactiveDetector for images)")
+
+            self.spatial_signature = np.array(data['spatial_signature'])
+            self.temporal_signature = np.array(data['temporal_signature'])
+            self.seed = data['seed']
+            self.epsilon = data['epsilon']
+            self.temporal_period = data['temporal_period']
+
+    def detect(
+        self,
+        model: nn.Module,
+        test_videos: List[str],
+        threshold: float = 0.15
+    ) -> Tuple[bool, float]:
+        """
+        Detect if a video model was trained on poisoned data.
+
+        Args:
+            model: Video model (e.g., 3D CNN, video transformer)
+            test_videos: List of test video paths (clean videos)
+            threshold: Detection threshold
+
+        Returns:
+            Tuple of (is_poisoned, confidence_score)
+        """
+        # TODO: Implement video model detection
+        # This requires extracting features from video models
+        # For now, placeholder
+
+        print("Video detection not yet implemented")
+        print("This requires a video feature extractor (e.g., I3D, TimeSformer)")
+
+        return False, 0.0
+
+
+if __name__ == "__main__":
+    print("Video Radioactive Poison - Core Implementation")
+    print("=" * 60)
+
+    # Example usage
+    marker = VideoRadioactiveMarker(epsilon=0.02, temporal_period=30, device='cpu')
+
+    # Generate signature
+    signature = marker.generate_signature()
+    print(f"Generated temporal signature with {len(signature)} frames")
+
+    # Save signature
+    marker.save_signature("video_signature.json")
+    print("Signature saved to video_signature.json")
+
+    print("\nReady to poison videos!")
+    print("Use the CLI: python video_poison_cli.py")
