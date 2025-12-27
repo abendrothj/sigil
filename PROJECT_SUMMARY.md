@@ -86,6 +86,9 @@ Verification:       0.259879 correlation (5.2x above threshold)
 - ✅ Optical flow poisoning mode
 - ✅ Video CLI tool
 - ✅ Demo script with visualization
+- ✅ Video detection with 3D CNN
+- ✅ Verification script (verify_video_poison.py)
+- ✅ Dataset generation (create_video_dataset.py)
 
 ### Web Interface
 - ✅ Three modes: Single / Batch / Video
