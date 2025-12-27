@@ -552,5 +552,5 @@ We present a novel approach to protecting videos from AI training by poisoning o
 ---
 
 **Author:** Project Basilisk Team
-**Last Updated:** 2024
+**Last Updated:** 2025
 **License:** MIT

@@ -446,6 +446,6 @@ python poison-core/video_poison_cli.py poison input.mp4 output.mp4
 ---
 
 **Author:** Project Basilisk Team
-**Last Updated:** 2024
+**Last Updated:** 2025
 **License:** MIT
 **Docs:** [VIDEO_APPROACH.md](docs/VIDEO_APPROACH.md)

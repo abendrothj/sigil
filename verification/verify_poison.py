@@ -177,8 +177,8 @@ def run_detection(
     print("🔍 Running Radioactive Detection")
     print("=" * 60)
     
-    # Load model
-    model = torch.load(model_path)
+    # Load model (PyTorch 2.6+ compatibility)
+    model = torch.load(model_path, weights_only=False)
     # Remove final classification layer to get feature extractor
     model = nn.Sequential(*list(model.children())[:-1])
     

@@ -1,6 +1,0 @@
-{
-  "original": "test_image.jpg",
-  "poisoned": "test_poisoned_fgsm.jpg",
-  "epsilon": 0.01,
-  "signature_id": "2aaf1e1bb3234783"
-}

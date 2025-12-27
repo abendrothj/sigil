@@ -347,6 +347,6 @@ pytest tests/ -m "not slow"
 
 ---
 
-**Last Updated:** 2024  
+**Last Updated:** 2025  
 **Maintained By:** Project Basilisk Team  
 **Run Tests:** `./run_tests.sh`
