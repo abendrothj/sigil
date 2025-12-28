@@ -209,24 +209,23 @@ def optimize_signature_cmaes(
         print(f"Generation {generation + 1}/{num_iterations}")
 
         solutions = []
-        fitnesses = []
 
         for _ in range(optimizer.population_size):
             x = optimizer.ask()
             fitness = evaluate_signature(x, test_videos, temp_dir)
-            solutions.append(x)
-            fitnesses.append(fitness)
+            solutions.append((x, fitness))
 
         # Update optimizer
-        optimizer.tell(solutions, fitnesses)
+        optimizer.tell(solutions)
 
         # Track best
+        fitnesses = [f for _, f in solutions]
         max_fitness_idx = np.argmax(fitnesses)
         max_fitness = fitnesses[max_fitness_idx]
 
         if max_fitness > best_fitness:
             best_fitness = max_fitness
-            best_signature = solutions[max_fitness_idx]
+            best_signature = solutions[max_fitness_idx][0]
 
         print(f"  Best fitness this gen: {max_fitness:.4f}")
         print(f"  Best overall: {best_fitness:.4f}")
