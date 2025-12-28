@@ -229,6 +229,35 @@ signature = SHA256(seed) → 512-dimensional unit vector
 
 ---
 
+
+## 🖥️ Video Perceptual Hash Robustness (Beta)
+
+### What is this?
+This project now includes a robust, compression-resistant perceptual hash for video, designed to survive aggressive H.264 compression (CRF 28) and tested on public benchmarks (UCF101, synthetic, and more).
+
+### Usage
+
+Extract and compare perceptual hashes for a video (see experiments/perceptual_hash.py):
+
+```bash
+python experiments/perceptual_hash.py <video_path> [max_frames]
+```
+
+Batch test hash robustness before/after compression:
+
+```bash
+python experiments/batch_hash_robustness.py test_batch_input 60 28
+```
+
+### Results (as of Dec 2025)
+- Synthetic and public benchmark videos: Hamming distance after CRF 28 compression is typically 0–14/256 (very robust)
+- Pure noise: Higher drift (expected, as noise is not preserved by codecs)
+
+### Reproducibility
+- All scripts are in experiments/
+- See experiments/README.md for details and how to add your own videos
+
+---
 ## 🚧 Roadmap
 
 ### Phase 1: Images ✅ (Weeks 1-6)

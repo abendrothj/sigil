@@ -1,3 +1,15 @@
+#
+# 2025 Update: Video Perceptual Hashing and Compression Robustness
+#
+# Recent literature (2024–2025) on video watermarking focuses on DCT/wavelet/neural methods for copyright and ownership, not ML provenance or adversarial hash collision. State-of-the-art methods (RC-VWN, DNN wavelet, differentiable codec training) use deep learning for watermarking, but do not target perceptual hash collision or ML poisoning.
+#
+# The Basilisk approach is novel in:
+# - Embedding signatures in perceptual features (edges, textures, motion, saliency, color histograms) that are robust to compression.
+# - Using adversarial optimization to create perceptual hash collisions for video.
+# - Focusing on ML provenance and detection, not just copyright watermarking.
+#
+# No prior work extends radioactive marking to video with perceptual hash collision or adversarial robustness. This is the first open source implementation and empirical validation of such a method.
+#
 # Research Foundation & Attribution
 
 Project Basilisk is built on rigorous academic research in adversarial machine learning, data provenance, and model auditing. This document provides comprehensive citations and explanations of the techniques used.

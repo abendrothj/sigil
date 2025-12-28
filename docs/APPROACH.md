@@ -1,5 +1,32 @@
 # Technical Approach & Architecture
 
+## Perceptual Hash Robustness for Video (2025)
+
+### Motivation
+Traditional DCT-based or per-frame poisoning approaches fail under aggressive video compression (e.g., H.264 CRF 28) because codecs are designed to destroy imperceptible or high-frequency information. Our new approach leverages perceptual features that codecs must preserve for human viewing.
+
+### Key Insight
+Embed the signature in perceptual features (edges, textures, motion, saliency, color histograms) that are robust to compression. This allows the signature to survive even harsh quantization.
+
+### Method Overview
+1. Extract perceptual features from each frame (edges, textures, saliency, color histograms).
+2. Compute a perceptual hash by projecting these features to a fixed-length binary vector.
+3. (For poisoning) Optimize a perturbation so the video’s perceptual hash collides with a target signature, while maintaining high visual quality (SSIM > 0.95).
+4. (For detection) After compression, extract features and compute the hash; if the Hamming distance to the signature is low, the video is detected as poisoned.
+
+### Why This Works
+- H.264 and similar codecs are perceptually driven: they preserve edges, textures, and motion for watchability.
+- Embedding in these features means the signature survives compression, unlike DCT or pixel-based methods.
+
+### Results
+- Synthetic and public benchmark videos: Hamming distance after CRF 28 compression is typically 0–14/256 (very robust)
+- Pure noise: Higher drift (expected, as noise is not preserved by codecs)
+
+### Implementation
+- See experiments/perceptual_hash.py and batch_hash_robustness.py for code and reproducibility.
+
+---
+
 This document explains how Project Basilisk works under the hood, from mathematical foundations to system architecture.
 
 ---

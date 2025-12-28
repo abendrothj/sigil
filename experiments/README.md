@@ -39,7 +39,25 @@ See [../COMPRESSION_ROBUSTNESS_JOURNEY.md](../COMPRESSION_ROBUSTNESS_JOURNEY.md)
 
 ## What Worked
 
-See parent directory for working implementations:
-- `poison-core/frequency_poison.py` - DCT poisoning (works for CRF 18-23)
-- `poison-core/frequency_detector.py` - Detection with contrastive validation
-- `train_cmaes_signature.py` - CMA-ES optimization (to be run)
+
+## Perceptual Hash Robustness (Video, Beta)
+
+### Approach
+Extracts robust perceptual features (edges, textures, saliency, color histograms) from each frame, projects to a fixed-length hash, and compares before/after compression.
+
+### Usage
+Extract hash for a video:
+```bash
+python perceptual_hash.py <video_path> [max_frames]
+```
+Batch test hash robustness (before/after CRF 28 compression):
+```bash
+python batch_hash_robustness.py test_batch_input 60 28
+```
+
+### Results (Dec 2025)
+- Synthetic and UCF101 videos: Hamming distance after CRF 28 compression is typically 0–14/256
+- Noise: Higher drift (expected)
+
+### Add your own videos
+Place .mp4/.avi files in test_batch_input and rerun batch_hash_robustness.py

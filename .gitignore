@@ -36,7 +36,7 @@ data/
 !docs/assets/*.jpg
 
 # Generated signatures and metadata (DO NOT COMMIT)
-*_signature.json
+*signature*.json
 *_metadata.json
 signature.json
 metadata.json
