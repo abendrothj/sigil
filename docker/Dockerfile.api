@@ -21,7 +21,9 @@ RUN pip install --no-cache-dir \
     scikit-image \
     flask \
     flask-cors \
-    pillow
+    pillow \
+    torch \
+    torchvision --extra-index-url https://download.pytorch.org/whl/cpu
 
 # Install API requirements
 RUN pip install --no-cache-dir -r /app/api/requirements.txt
