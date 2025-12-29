@@ -22,6 +22,7 @@ from core.perceptual_hash import (
     extract_perceptual_features,
     compute_perceptual_hash
 )
+from core.crypto_signatures import SignatureManager
 
 
 def main():
@@ -54,6 +55,21 @@ def main():
         "--verbose",
         action="store_true",
         help="Print verbose output"
+    )
+    parser.add_argument(
+        "--sign",
+        action="store_true",
+        help="Create cryptographic signature for ownership proof"
+    )
+    parser.add_argument(
+        "--key-path",
+        type=str,
+        help="Path to private key (default: ~/.basilisk/identity.pem)"
+    )
+    parser.add_argument(
+        "--signature-output",
+        type=str,
+        help="Output path for signature.json (default: same directory as video with .signature.json extension)"
     )
 
     args = parser.parse_args()
@@ -110,6 +126,52 @@ def main():
             print(f"   Length: {len(hash_binary)} bits")
             print(f"   Bits set: {np.sum(hash_binary)} / 256")
             print(f"   Format: {args.format}")
+
+        # Create cryptographic signature if requested
+        if args.sign:
+            if args.verbose:
+                print("\n🔐 Creating cryptographic signature...")
+
+            # Convert hash to hex format for signing
+            hash_hex = hex(int(''.join(map(str, hash_binary.astype(int))), 2))[2:].zfill(64)
+
+            # Initialize signature manager
+            sig_manager = SignatureManager()
+            if args.key_path:
+                from core.crypto_signatures import BasiliskIdentity
+                sig_manager.identity = BasiliskIdentity(Path(args.key_path))
+
+            # Determine signature output path
+            if args.signature_output:
+                sig_output_path = Path(args.signature_output)
+            else:
+                sig_output_path = video_path.with_suffix(video_path.suffix + '.signature.json')
+
+            # Create metadata
+            metadata = {
+                "video_filename": video_path.name,
+                "frames_analyzed": len(frames),
+                "hash_format": args.format
+            }
+
+            # Generate and save signature
+            sig_file = sig_manager.create_signature_file(
+                hash_hex=hash_hex,
+                output_path=sig_output_path,
+                video_filename=video_path.name,
+                additional_metadata=metadata
+            )
+
+            if args.verbose:
+                print(f"✅ Signature saved to: {sig_file}")
+                print(f"   Key ID: {sig_manager.identity.key_id}")
+                print(f"   Algorithm: Ed25519")
+                print(f"\n💡 Next steps:")
+                print(f"   1. Verify signature: python -m cli.verify {sig_file}")
+                print(f"   2. Post to Twitter/GitHub for timestamp proof")
+                print(f"   3. Anchor: python -m cli.anchor {sig_file} --twitter <tweet_url>")
+            else:
+                print(f"\n✅ Signature: {sig_file}")
 
     except Exception as e:
         print(f"Error: {e}", file=sys.stderr)

@@ -21,6 +21,7 @@ sys.path.append(str(Path(__file__).parent.parent))
 try:
     from core.perceptual_hash import load_video_frames, extract_perceptual_features, compute_perceptual_hash, hamming_distance
     from core.hash_database import HashDatabase
+    from core.crypto_signatures import SignatureManager, BasiliskIdentity
 except ImportError as e:
     print(f"Error importing core modules: {e}")
     print("Make sure core/ is in the correct location")
@@ -86,6 +87,7 @@ def extract_hash():
         max_frames = int(request.form.get('max_frames', 60))
         metadata_str = request.form.get('metadata', '{}')
         metadata = json.loads(metadata_str)
+        sign = request.form.get('sign', 'false').lower() == 'true'
 
         # Validate max_frames
         if max_frames < 10 or max_frames > 300:
@@ -115,26 +117,60 @@ def extract_hash():
         # Convert to string
         hash_str = ''.join(map(str, hash_bits))
 
+        # Convert hash to hex for signing/storage
+        hash_hex = hex(int(hash_str, 2))[2:].zfill(64)
+
+        # Generate signature if requested
+        signature_doc = None
+        if sign:
+            try:
+                sig_manager = SignatureManager()
+                sig_metadata = {
+                    'video_filename': filename,
+                    'frames_analyzed': len(frames),
+                    'api_request_id': request_id
+                }
+                signature_doc = sig_manager.identity.sign_hash(hash_hex, sig_metadata)
+            except Exception as e:
+                return jsonify({'error': f'Signature generation failed: {str(e)}'}), 500
+
         # Store in database
         metadata['original_filename'] = filename
         metadata['num_frames'] = len(frames)
-        hash_id = db.store_hash(
-            hash_bits,
-            file_path=str(input_path),
-            frame_count=len(frames),
-            metadata=metadata
-        )
+
+        # Add signature fields if signing
+        db_args = {
+            'hash_binary': hash_bits,
+            'file_path': str(input_path),
+            'frame_count': len(frames),
+            'metadata': metadata
+        }
+
+        if signature_doc:
+            db_args['signature'] = signature_doc['proof']['signature']
+            db_args['public_key'] = signature_doc['proof']['public_key']
+            db_args['key_id'] = signature_doc['proof']['key_id']
+            db_args['signed_at'] = signature_doc['proof']['signed_at']
+            db_args['signature_version'] = signature_doc['version']
+
+        hash_id = db.store_hash(**db_args)
 
         # Clean up
         input_path.unlink(missing_ok=True)
 
-        return jsonify({
+        response = {
             'success': True,
             'hash': hash_str,
+            'hash_hex': hash_hex,
             'hash_id': hash_id,
             'num_frames': len(frames),
             'metadata': metadata
-        })
+        }
+
+        if signature_doc:
+            response['signature'] = signature_doc
+
+        return jsonify(response)
 
     except ValueError as e:
         return jsonify({'error': f'Invalid input: {str(e)}'}), 400
@@ -232,16 +268,133 @@ def get_stats():
         return jsonify({'error': str(e)}), 500
 
 
+@app.route('/api/verify', methods=['POST'])
+def verify_signature():
+    """
+    Verify a cryptographic signature
+
+    Request:
+        - signature: JSON signature document
+
+    Response:
+        - valid: bool
+        - key_id: string
+        - hash_hex: string
+        - signed_at: string
+        - error: string (if invalid)
+    """
+    try:
+        if not request.json or 'signature' not in request.json:
+            return jsonify({'error': 'Signature document required in JSON body'}), 400
+
+        signature_doc = request.json['signature']
+
+        # Verify signature
+        is_valid, error = BasiliskIdentity.verify_signature(signature_doc)
+
+        if is_valid:
+            return jsonify({
+                'success': True,
+                'valid': True,
+                'key_id': signature_doc['proof']['key_id'],
+                'hash_hex': signature_doc['claim']['hash_hex'],
+                'signed_at': signature_doc['proof']['signed_at'],
+                'algorithm': signature_doc['proof']['algorithm']
+            })
+        else:
+            return jsonify({
+                'success': True,
+                'valid': False,
+                'error': error
+            })
+
+    except Exception as e:
+        print(f"Error in verify_signature: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'error': f'Server error: {str(e)}'}), 500
+
+
+@app.route('/api/identity', methods=['GET'])
+def get_identity():
+    """
+    Get current server identity information
+
+    Response:
+        - has_identity: bool
+        - key_id: string (if exists)
+        - public_key: string (PEM format)
+    """
+    try:
+        identity = BasiliskIdentity()
+
+        if not identity.private_key:
+            return jsonify({
+                'success': True,
+                'has_identity': False,
+                'message': 'No server identity configured'
+            })
+
+        return jsonify({
+            'success': True,
+            'has_identity': True,
+            'key_id': identity.key_id,
+            'public_key': identity.export_public_key(),
+            'algorithm': 'Ed25519'
+        })
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/identity/generate', methods=['POST'])
+def generate_identity():
+    """
+    Generate new server identity (admin only)
+    WARNING: This will invalidate all existing signatures
+
+    Response:
+        - key_id: string
+        - public_key: string
+    """
+    try:
+        # In production, this should require authentication
+        identity = BasiliskIdentity()
+
+        # Check if identity exists
+        if identity.private_key and not request.json.get('overwrite', False):
+            return jsonify({
+                'error': 'Identity already exists. Set overwrite=true to replace'
+            }), 400
+
+        # Generate new identity
+        identity.generate(overwrite=request.json.get('overwrite', False))
+
+        return jsonify({
+            'success': True,
+            'key_id': identity.key_id,
+            'public_key': identity.export_public_key(),
+            'algorithm': 'Ed25519',
+            'warning': 'Private key stored unencrypted at ~/.basilisk/identity.pem'
+        })
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
 if __name__ == '__main__':
     print("=" * 60)
     print("🐍 Basilisk Perceptual Hash Tracking API")
     print("=" * 60)
     print("Starting Flask server on http://localhost:5000")
     print("Endpoints:")
-    print("  GET  /health          - Health check")
-    print("  POST /api/extract     - Extract perceptual hash from video")
-    print("  POST /api/compare     - Compare hash against database")
-    print("  GET  /api/stats       - Database statistics")
+    print("  GET  /health               - Health check")
+    print("  POST /api/extract          - Extract perceptual hash from video")
+    print("  POST /api/compare          - Compare hash against database")
+    print("  GET  /api/stats            - Database statistics")
+    print("  POST /api/verify           - Verify cryptographic signature")
+    print("  GET  /api/identity         - Get server identity info")
+    print("  POST /api/identity/generate- Generate new server identity")
     print("=" * 60)
     print()
     print("NOTE: This API uses a FIXED SEED (42) for hash generation.")

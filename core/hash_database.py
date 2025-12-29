@@ -45,6 +45,11 @@ class HashDatabase:
                 frame_count INTEGER,
                 metadata TEXT,
                 created_at TEXT NOT NULL,
+                signature TEXT,
+                public_key TEXT,
+                key_id TEXT,
+                signed_at TEXT,
+                signature_version TEXT,
                 UNIQUE(hash)
             )
         ''')
@@ -59,6 +64,37 @@ class HashDatabase:
             CREATE INDEX IF NOT EXISTS idx_platform ON hashes(platform)
         ''')
 
+        # Create index on key_id for signature queries
+        cursor.execute('''
+            CREATE INDEX IF NOT EXISTS idx_key_id ON hashes(key_id)
+        ''')
+
+        self.conn.commit()
+
+        # Migrate existing databases to add signature columns
+        self._migrate_schema()
+
+    def _migrate_schema(self):
+        """Migrate existing databases to add signature columns"""
+        cursor = self.conn.cursor()
+
+        # Check if signature columns exist
+        cursor.execute("PRAGMA table_info(hashes)")
+        columns = [row[1] for row in cursor.fetchall()]
+
+        # Add missing columns
+        new_columns = {
+            'signature': 'TEXT',
+            'public_key': 'TEXT',
+            'key_id': 'TEXT',
+            'signed_at': 'TEXT',
+            'signature_version': 'TEXT'
+        }
+
+        for col_name, col_type in new_columns.items():
+            if col_name not in columns:
+                cursor.execute(f'ALTER TABLE hashes ADD COLUMN {col_name} {col_type}')
+
         self.conn.commit()
 
     def store_hash(
@@ -69,7 +105,12 @@ class HashDatabase:
         upload_date: Optional[str] = None,
         file_path: Optional[str] = None,
         frame_count: Optional[int] = None,
-        metadata: Optional[Dict] = None
+        metadata: Optional[Dict] = None,
+        signature: Optional[str] = None,
+        public_key: Optional[str] = None,
+        key_id: Optional[str] = None,
+        signed_at: Optional[str] = None,
+        signature_version: Optional[str] = None
     ) -> int:
         """
         Store perceptual hash in database
@@ -82,6 +123,11 @@ class HashDatabase:
             file_path: Optional local file path
             frame_count: Optional number of frames processed
             metadata: Optional additional metadata dictionary
+            signature: Optional base64-encoded Ed25519 signature
+            public_key: Optional base64-encoded Ed25519 public key
+            key_id: Optional SHA256 fingerprint of public key
+            signed_at: Optional signature timestamp (ISO8601)
+            signature_version: Optional signature format version
 
         Returns:
             Database row ID
@@ -100,8 +146,9 @@ class HashDatabase:
             cursor.execute('''
                 INSERT INTO hashes (
                     hash, hash_hex, video_id, platform, upload_date,
-                    file_path, frame_count, metadata, created_at
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    file_path, frame_count, metadata, created_at,
+                    signature, public_key, key_id, signed_at, signature_version
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ''', (
                 hash_str,
                 hash_hex,
@@ -111,7 +158,12 @@ class HashDatabase:
                 file_path,
                 frame_count,
                 metadata_json,
-                datetime.utcnow().isoformat()
+                datetime.utcnow().isoformat(),
+                signature,
+                public_key,
+                key_id,
+                signed_at,
+                signature_version
             ))
             self.conn.commit()
             return cursor.lastrowid
@@ -124,7 +176,12 @@ class HashDatabase:
                     upload_date = COALESCE(?, upload_date),
                     file_path = COALESCE(?, file_path),
                     frame_count = COALESCE(?, frame_count),
-                    metadata = COALESCE(?, metadata)
+                    metadata = COALESCE(?, metadata),
+                    signature = COALESCE(?, signature),
+                    public_key = COALESCE(?, public_key),
+                    key_id = COALESCE(?, key_id),
+                    signed_at = COALESCE(?, signed_at),
+                    signature_version = COALESCE(?, signature_version)
                 WHERE hash = ?
             ''', (
                 video_id,
@@ -133,6 +190,11 @@ class HashDatabase:
                 file_path,
                 frame_count,
                 metadata_json,
+                signature,
+                public_key,
+                key_id,
+                signed_at,
+                signature_version,
                 hash_str
             ))
             self.conn.commit()
@@ -165,12 +227,16 @@ class HashDatabase:
         # Query all hashes (with platform filter if specified)
         if platform:
             cursor.execute(
-                'SELECT id, hash, hash_hex, video_id, platform, upload_date, file_path, frame_count, metadata, created_at FROM hashes WHERE platform = ?',
+                '''SELECT id, hash, hash_hex, video_id, platform, upload_date, file_path, frame_count,
+                   metadata, created_at, signature, public_key, key_id, signed_at, signature_version
+                   FROM hashes WHERE platform = ?''',
                 (platform,)
             )
         else:
             cursor.execute(
-                'SELECT id, hash, hash_hex, video_id, platform, upload_date, file_path, frame_count, metadata, created_at FROM hashes'
+                '''SELECT id, hash, hash_hex, video_id, platform, upload_date, file_path, frame_count,
+                   metadata, created_at, signature, public_key, key_id, signed_at, signature_version
+                   FROM hashes'''
             )
 
         results = []
@@ -194,6 +260,11 @@ class HashDatabase:
                     'frame_count': row[7],
                     'metadata': json.loads(row[8]) if row[8] else None,
                     'created_at': row[9],
+                    'signature': row[10],
+                    'public_key': row[11],
+                    'key_id': row[12],
+                    'signed_at': row[13],
+                    'signature_version': row[14],
                     'hamming_distance': distance,
                     'similarity': 100 * (1 - distance / 256)
                 })
