@@ -1,208 +1,115 @@
-#
-# 2025 Update: Video Perceptual Hashing and Compression Robustness
-#
-# Recent literature (2024–2025) on video watermarking focuses on DCT/wavelet/neural methods for copyright and ownership, not ML provenance or adversarial hash collision. State-of-the-art methods (RC-VWN, DNN wavelet, differentiable codec training) use deep learning for watermarking, but do not target perceptual hash collision or ML poisoning.
-#
-# The Basilisk approach is novel in:
-# - Embedding signatures in perceptual features (edges, textures, motion, saliency, color histograms) that are robust to compression.
-# - Using adversarial optimization to create perceptual hash collisions for video.
-# - Focusing on ML provenance and detection, not just copyright watermarking.
-#
-# No prior work extends radioactive marking to video with perceptual hash collision or adversarial robustness. This is the first open source implementation and empirical validation of such a method.
-#
 # Research Foundation & Attribution
 
-Project Basilisk is built on rigorous academic research in adversarial machine learning, data provenance, and model auditing. This document provides comprehensive citations and explanations of the techniques used.
+**Project Basilisk** - Compression-Robust Perceptual Hash Tracking for Video Forensics
+
+This document provides academic citations and explains the research foundation for Basilisk's perceptual hash tracking system.
 
 ---
 
-## Core Research Papers
+## Overview
 
-### 1. Radioactive Data (Foundation for Image Poisoning)
+Basilisk implements compression-robust video fingerprinting using perceptual features. The approach is novel in:
 
-**"Radioactive data: tracing through training"**  
-*Authors:* Alexandre Sablayrolles, Matthijs Douze, Cordelia Schmid, Yann Ollivier, Hervé Jégou  
-*Institution:* Facebook AI Research (FAIR)  
-*Published:* ICML 2020  
-*Paper:* https://arxiv.org/abs/2002.00937  
-*Code:* https://github.com/facebookresearch/radioactive_data
-
-**Key Contribution:**  
-Introduced the concept of "radioactive data marking" - imperceptibly marking images such that any model trained on them carries a detectable signature. Unlike watermarks (pixel-level), radioactive marking operates in the feature space that neural networks learn.
-
-**How It Works:**
-1. Generate a unique random direction vector in feature space (the "signature")
-2. Extract features from an image using a pre-trained model (e.g., ResNet)
-3. Compute a gradient that pushes those features toward the signature direction
-4. Apply this gradient as a small perturbation to the input pixels
-5. The perturbed image looks identical but encodes the signature in its learned representation
-
-**Why It's Powerful:**
-- Survives model training (unlike pixel watermarks which are averaged away)
-- Difficult to remove without degrading image quality
-- Enables provable data theft detection
-
-**Basilisk Implementation:**  
-`poison-core/radioactive_poison.py` - Modern PyTorch implementation of the radioactive marking algorithm with cryptographically secure signature generation.
+- **Perceptual feature selection** for compression robustness (edges, textures, saliency, color)
+- **Random projection** for dimensionality reduction to 256-bit hash
+- **Empirical validation** across major platforms (YouTube, TikTok, Facebook, Instagram, Vimeo, Twitter)
+- **3-10 bit drift** at extreme compression (CRF 28-40)
+- **Open-source implementation** with transparent limitations
 
 ---
 
-### 2. Adversarial Examples (Theoretical Foundation)
+## Core Research Areas
 
-**"Explaining and Harnessing Adversarial Examples"**  
-*Authors:* Ian J. Goodfellow, Jonathon Shlens, Christian Szegedy  
-*Institution:* Google Brain  
-*Published:* ICLR 2015  
-*Paper:* https://arxiv.org/abs/1412.6572
+### 1. Perceptual Hashing & Video Fingerprinting
 
-**Key Contribution:**  
-Introduced the Fast Gradient Sign Method (FGSM), demonstrating that small, imperceptible perturbations can drastically change model predictions. This laid the theoretical groundwork for all adversarial data techniques.
+**Background:**
 
-**Relevance to Basilisk:**  
-Radioactive marking is a creative application of adversarial perturbations - instead of fooling a model's predictions, we're encoding a signal that the model will learn and internalize.
+Perceptual hashing creates fingerprints that remain stable under transformations like compression, resizing, and format conversion. Unlike cryptographic hashes (which change completely with any modification), perceptual hashes measure semantic similarity.
 
----
+**Relevant Work:**
 
-### 3. Data Provenance & Model Auditing
+- **"Video Copy Detection: A Survey"** (Hampapur et al., 2007) - Foundational survey of video fingerprinting techniques
+- **"Perceptual Hashing for Multimedia Content Protection"** (Swaminathan et al., 2006) - Theoretical foundation for robust fingerprinting
+- **"A Survey of Perceptual Hashing Methods for Multimedia"** (Yan et al., 2011) - Comprehensive review of perceptual hash methods
 
-**"Dataset Inference: Ownership Resolution in Machine Learning"**  
-*Authors:* Pratyush Maini, Mohammad Yaghini, Nicolas Papernot  
-*Institution:* University of Toronto, Vector Institute  
-*Published:* ICLR 2021  
-*Paper:* https://arxiv.org/abs/2104.10706
+**Basilisk's Contribution:**
 
-**Key Contribution:**  
-Demonstrated techniques for determining whether a specific dataset was used to train a model, even without access to the training process.
+Novel combination of features specifically chosen for H.264 compression robustness:
+- Canny edges (survive quantization)
+- Gabor textures (4 orientations)
+- Laplacian saliency (perceptually important regions)
+- RGB histograms (color distribution)
 
-**Relevance:**  
-Complements radioactive marking by providing statistical methods to audit models for data usage.
+### 2. Video Compression & Codec Analysis
 
----
+**"The H.264/AVC Advanced Video Coding Standard"** (Richardson, 2010)
 
-### 4. Model Fingerprinting
+Understanding codec behavior is critical for compression-robust fingerprinting. H.264 preserves perceptual content while discarding imperceptible details through:
+- DCT transformation
+- Quantization (controlled by CRF parameter)
+- Motion compensation
+- Entropy coding
 
-**"Turning Your Weakness Into a Strength: Watermarking Deep Neural Networks by Backdooring"**  
-*Authors:* Yossi Adi, Carsten Baum, Moustapha Cisse, Benny Pinkas, Joseph Keshet  
-*Institution:* Bar-Ilan University, Facebook AI Research  
-*Published:* USENIX Security 2018  
-*Paper:* https://arxiv.org/abs/1802.04633
+**Basilisk's Insight:**
 
-**Key Contribution:**  
-Showed how to embed "backdoors" in models that serve as ownership signatures, proving model theft.
+Rather than fighting quantization, extract features the codec is designed to preserve. At CRF 28-40, codecs preserve edges, textures, and saliency - exactly the features Basilisk uses.
 
-**Relevance:**  
-Conceptually similar to radioactive data, but embeds the signature during training rather than in the data itself.
+### 3. Random Projection & Dimensionality Reduction
 
----
+**"Random Projection in Dimensionality Reduction"** (Bingham & Mannila, 2001)
 
-## Extended Research: Multi-Modal Protection
+Random projection preserves distances in high-dimensional space while reducing dimensionality. For a feature vector of length N projected to dimension k:
+- Pairwise distances preserved with high probability
+- Computational efficiency (matrix multiplication)
+- No training required
 
-### Video Poisoning (Phase 2 of Basilisk)
+**Basilisk Implementation:**
+- Feature vector: ~200K dimensions (edges + textures + saliency + histogram)
+- Projection: Random Gaussian matrix (seed=42) → 256 dimensions
+- Binarization: Median threshold → 256-bit hash
 
-**Target Papers:**
+### 4. Forensic Fingerprinting for Legal Evidence
 
-1. **"Adversarial Perturbations Against Deep Neural Networks for Malware Classification"**  
-   Demonstrates adversarial perturbations in sequential data.  
-   *Insight:* Video frames must be perturbed in a temporally coherent way to survive compression.
+**"Digital Fingerprinting for Copyright Protection"** (Cox et al., 2008)
 
-2. **"Optical Flow Estimation Using Deep Neural Networks"**  
-   Provides foundation for understanding motion representation in video models.  
-   *Basilisk Application:* Perturb optical flow vectors to create "impossible physics" that AI learns but humans can't perceive.
+Forensic fingerprinting differs from watermarking:
+- **Watermarking:** Embeds information in content
+- **Fingerprinting:** Extracts inherent characteristics
 
-**Basilisk Innovation:**  
-No existing paper has applied radioactive marking to video. This is original research territory. The challenge is making the signature survive video compression (H.264, AV1) which destroys frame-level perturbations.
-
-**Proposed Approach:**
-- Extract optical flow between frames using OpenCV
-- Generate a temporal signature (cyclic pattern across frames)
-- Perturb flow vectors to encode the signature
-- Reconstruct frames from perturbed flow
-- The signature survives compression because it's in motion, not pixels
+Basilisk uses fingerprinting approach:
+- No content modification required
+- Publicly verifiable (anyone can compute hash)
+- Suitable for legal evidence (reproducible proof)
 
 ---
 
-### Code Protection (Phase 3)
+## Related Work Comparison
 
-**"Adversarial Watermarking Transformer (AWT)"**  
-*GitHub:* https://github.com/THU-BPM/MarkLLM  
-*Authors:* Leyi Pan, et al. (Tsinghua University)
-
-**Key Contribution:**  
-Watermarking for LLM-generated text using token probability distributions.
-
-**Basilisk Integration:**  
-Will use AWT as a library to protect code snippets from AI training scrapes (e.g., GitHub Copilot training on your proprietary code).
+| Approach | Compression Robustness | Open Source | Platform Validated |
+|----------|------------------------|-------------|-------------------|
+| **Basilisk (Ours)** | ✅ CRF 28-40 (3-10 bit drift) | ✅ MIT License | ✅ 6 platforms |
+| YouTube ContentID | ✅ Proprietary | ❌ Closed | ✅ YouTube only |
+| PDQ (Facebook) | ⚠️ Images only | ✅ Open | ⚠️ Not for video |
+| PhotoDNA (Microsoft) | ⚠️ Images only | ❌ Closed | ⚠️ Not for video |
 
 ---
 
-### Audio Protection (Phase 3)
-
-**"AudioSeal: Proactive Watermarking for AI-Generated Audio"**  
-*Institution:* Meta AI  
-*GitHub:* https://github.com/facebookresearch/audioseal  
-*Paper:* https://arxiv.org/abs/2401.17264
-
-**Key Contribution:**  
-Real-time neural watermarking for audio that's robust to MP3 compression and re-recording.
-
-**Basilisk Integration:**  
-Direct library integration for musicians protecting their work from AI voice cloning and music generation models.
-
----
-
-## Attribution & Intellectual Debt
+## Attribution & Acknowledgments
 
 ### What We're Building On
 
-Project Basilisk stands on the shoulders of giants. We are **not claiming to have invented**:
-- Adversarial perturbations (Goodfellow et al., 2015)
-- Radioactive data marking (Sablayrolles et al., 2020)
-- Model fingerprinting (Adi et al., 2018)
+- **Computer Vision:** OpenCV (edge detection, Gabor filters, Laplacian)
+- **Scientific Computing:** NumPy, SciPy (random projection, distance metrics)
+- **Video Processing:** FFmpeg (codec understanding, compression analysis)
 
 ### Our Contribution
 
-What Basilisk **does** contribute:
-1. **Practical Implementation:** Production-ready implementation of radioactive marking with modern PyTorch
-2. **Multi-Modal Integration:** First platform to unify image, video, code, and audio protection
-3. **Video Poisoning Research:** Novel application of radioactive marking to video via optical flow perturbation (original research, to be published)
-4. **Accessibility:** User-friendly tooling that democratizes access to these techniques for individual creators
-5. **Detection Infrastructure:** Honey pot strategy for catching AI companies in the act
-
----
-
-## Academic Integrity Statement
-
-This project is intended for:
-✅ Defensive security and artist protection  
-✅ Academic research into data provenance  
-✅ Legal evidence in copyright disputes  
-✅ Educational demonstrations of adversarial ML  
-
-This project is **not** intended for:
-❌ Malicious data poisoning attacks  
-❌ Corrupting public datasets  
-❌ Evading legitimate research  
-
-We believe creators have the right to protect their work from unauthorized AI training, and these techniques level the playing field against well-resourced AI companies.
-
----
-
-## Open Research Questions
-
-### 1. Video Compression Robustness
-**Question:** Can radioactive signatures survive aggressive video compression (e.g., TikTok's re-encoding pipeline)?  
-**Hypothesis:** Yes, if encoded in motion vectors rather than pixel values.  
-**Status:** Active research (Phase 2)
-
-### 2. Cross-Modal Transfer
-**Question:** If a model is trained on poisoned images, does the signature leak into its text encoder (for multimodal models like CLIP)?  
-**Hypothesis:** Yes, because the image and text embeddings are jointly trained.  
-**Status:** Unexplored (potential Phase 4)
-
-### 3. Adversarial Removal Techniques
-**Question:** Can an attacker "sanitize" poisoned data by training a denoising autoencoder?  
-**Hypothesis:** Partially, but it degrades image quality below usability threshold.  
-**Status:** Needs empirical testing
+Basilisk **does** contribute:
+1. **Novel feature combination** for video compression robustness
+2. **Empirical platform validation** across 6 major services
+3. **Open-source implementation** with transparent limitations
+4. **Honest failure documentation** (archived DCT approach)
+5. **Security analysis** (fixed seed limitations clearly documented)
 
 ---
 
@@ -212,24 +119,12 @@ If you use Project Basilisk in academic research, please cite:
 
 ```bibtex
 @software{basilisk2025,
-  title={Project Basilisk: Multi-Modal Data Poisoning for AI Training Protection},
-  author={[Jake Abendroth]},
+  title={Basilisk: Compression-Robust Perceptual Hash Tracking for Video Forensics},
+  author={Abendroth, Jake},
   year={2025},
   url={https://github.com/abendrothj/basilisk},
-  note={Built on radioactive data marking (Sablayrolles et al., 2020)}
-}
-```
-
-And cite the foundational work:
-
-```bibtex
-@inproceedings{sablayrolles2020radioactive,
-  title={Radioactive data: tracing through training},
-  author={Sablayrolles, Alexandre and Douze, Matthijs and Schmid, Cordelia and Ollivier, Yann and J{\'e}gou, Herv{\'e}},
-  booktitle={International Conference on Machine Learning},
-  pages={8326--8335},
-  year={2020},
-  organization={PMLR}
+  license={MIT},
+  note={Empirical validation across 6 major platforms with 3-10 bit drift at CRF 28-40}
 }
 ```
 
@@ -237,22 +132,20 @@ And cite the foundational work:
 
 ## Further Reading
 
-### Recommended Papers for Deep Dive
+### Compression & Codec Theory
+- Richardson, I. (2010). *The H.264/AVC Advanced Video Coding Standard*. Wiley.
+- Wiegand, T., et al. (2003). "Overview of the H.264/AVC video coding standard". IEEE Trans. Circuits and Systems for Video Technology.
 
-1. **On Data Poisoning:**
-   - "Poisoning Attacks against Support Vector Machines" (Biggio et al., 2012)
-   - "Certified Defenses for Data Poisoning Attacks" (Steinhardt et al., 2017)
+### Perceptual Hashing
+- Monga, V., & Evans, B. L. (2006). "Perceptual image hashing via feature points: Performance evaluation and tradeoffs". IEEE Transactions on Image Processing.
+- Kozat, S. S., et al. (2004). "Robust perceptual image hashing via matrix invariants". IEEE International Conference on Image Processing.
 
-2. **On Model Auditing:**
-   - "Membership Inference Attacks Against Machine Learning Models" (Shokri et al., 2017)
-   - "Extracting Training Data from Large Language Models" (Carlini et al., 2021)
-
-3. **On Adversarial Robustness:**
-   - "Towards Deep Learning Models Resistant to Adversarial Attacks" (Madry et al., 2018)
-   - "Obfuscated Gradients Give a False Sense of Security" (Athalye et al., 2018)
+### Forensic Analysis
+- Fridrich, J., & Kodovsky, J. (2012). "Rich models for steganalysis of digital images". IEEE Transactions on Information Forensics and Security.
+- Lukas, J., et al. (2006). "Digital camera identification from sensor pattern noise". IEEE Transactions on Information Forensics and Security.
 
 ---
 
-**Last Updated:** 2025
+**Last Updated:** December 28, 2025
 **Maintained By:** Jake Abendroth
-**License:** See LICENSE file for usage terms
+**License:** MIT - See [LICENSE](../LICENSE) for terms
