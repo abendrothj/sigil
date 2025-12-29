@@ -4,13 +4,13 @@
 
 **The first open-source perceptual hash system that survives YouTube, TikTok, Facebook, and Instagram compression.**
 
-> Built on peer-reviewed computer vision research. 3-10 bit drift at extreme compression (CRF 28-40). Production-ready for legal evidence collection.
+> Built on peer-reviewed computer vision research. 4-14 bit drift on UCF-101 real videos (CRF 28). Production-ready for legal evidence collection.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
-[![Hash Drift: 3-10 bits](https://img.shields.io/badge/Hash%20Drift-3--10%20bits%20%40%20CRF%2028--40-brightgreen)](VERIFICATION_PROOF.md)
+[![Hash Drift: 4-14 bits](https://img.shields.io/badge/Hash%20Drift-4--14%20bits%20%40%20CRF%2028-brightgreen)](VERIFICATION_PROOF.md)
 [![Platforms: 6 Verified](https://img.shields.io/badge/Platforms-6%20Verified-blue)](docs/COMPRESSION_LIMITS.md)
-[![Tests: 55 Passing](https://img.shields.io/badge/Tests-55%20Passing-success)](TESTING_SUMMARY.md)
+[![Tests: 8 Passing](https://img.shields.io/badge/Tests-8%20Passing-success)](#automated-test-suite)
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/abendrothj/basilisk/blob/main/notebooks/Basilisk_Demo.ipynb)
 
 ---
@@ -26,19 +26,19 @@ cd basilisk
 source venv/bin/activate
 
 # Extract 256-bit perceptual hash from video
-python experiments/perceptual_hash.py your_video.mp4 60
+python cli/extract.py your_video.mp4
 
-# Output: Hash + timestamp for forensic database
+# Output: 256-bit hash + metadata
 ```
 
 
-### Test Hash Stability After Compression
+### Compare Two Videos
 
 ```bash
-# Compress video at different CRF levels and compare hashes
-python experiments/batch_hash_robustness.py videos/ 60 28
+# Check if two videos are the same (even after compression)
+python cli/compare.py original.mp4 downloaded.mp4
 
-# Output: Hamming distance (bits changed) for each video
+# Output: Hamming distance and match status
 ```
 
 
@@ -84,12 +84,12 @@ Basilisk extracts **compression-robust perceptual features** from video frames a
 - Median threshold binarization
 - **Output:** 256-bit perceptual hash
 
-**3. Track Across Platforms** (3-10 bit drift)
+**3. Track Across Platforms** (4-14 bit drift at CRF 28)
 
 - Hamming distance < 30 bits = match
-- YouTube Mobile (CRF 28): **8 bits drift (3.1%)**
-- TikTok (CRF 35): **8 bits drift (3.1%)**
-- Extreme (CRF 40): **10 bits drift (3.9%)**
+- UCF-101 Mean (CRF 28): **8.7 bits drift (3.4%)**
+- Range (CRF 28): **4-14 bits drift (1.6-5.5%)**
+- Extreme (CRF 35): **22 bits drift (8.6%)** ✅ Still passes
 
 **4. Build Legal Evidence** (Timestamped Database)
 
@@ -132,13 +132,13 @@ Basilisk extracts **compression-robust perceptual features** from video frames a
 - **Codecs preserve perceptual content** (edges, textures, saliency)
 - H.264 is designed to keep what humans see, discard imperceptible details
 - Our features extract exactly what the codec tries to preserve
-- Hash stability: 96-97% of bits unchanged at CRF 28-40
+- Hash stability: 94.5-98.4% of bits unchanged at CRF 28 (UCF-101 tested)
 
 **Empirical validation:**
 
-- 20+ test videos (UCF-101 real videos + synthetic benchmarks)
-- 6 major platforms tested (YouTube, TikTok, Facebook, Instagram, Vimeo, Twitter)
-- Statistical significance: Hamming distance 3-7× below detection threshold
+- 3 UCF-101 real videos (action recognition benchmark)
+- Tested at CRF 28 (YouTube/TikTok), CRF 35 (extreme), CRF 40 (fails threshold)
+- Statistical significance: 2-3× safety margin below detection threshold at CRF 28
 
 See [VERIFICATION_PROOF.md](VERIFICATION_PROOF.md) for full methodology and [docs/Perceptual_Hash_Whitepaper.md](docs/Perceptual_Hash_Whitepaper.md) for technical details
 
@@ -158,8 +158,8 @@ See [VERIFICATION_PROOF.md](VERIFICATION_PROOF.md) for full methodology and [doc
 ### Academic Resources
 
 - **Interactive Demo:** [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/abendrothj/basilisk/blob/main/notebooks/Basilisk_Demo.ipynb)
-- **Reproducibility:** All experiments reproducible via [experiments/](experiments/) directory
-- **Test Suite:** 55+ tests with 85%+ coverage - [TESTING_SUMMARY.md](TESTING_SUMMARY.md)
+- **Reproducibility:** Validation tests available via CLI and API
+- **Test Suite:** API and integration tests - run with `pytest tests/`
 
 ---
 
@@ -189,8 +189,7 @@ basilisk/
 ├── experimental/             # Archived research (deprecated)
 │   └── deprecated_dct_approach/   # Failed DCT poisoning attempts
 └── tests/                    # Test suite
-    ├── test_compression_robustness.py
-    └── test_api.py
+    └── test_api.py               # API endpoint tests
 ```
 
 ---
@@ -202,50 +201,44 @@ basilisk/
 **Test hash stability after platform compression:**
 
 ```bash
-# Create test video
-python3 experiments/make_short_test_video.py
-
-# Extract original hash
-python3 experiments/perceptual_hash.py short_test.mp4 30
+# Extract hash using CLI
+python cli/extract.py test_video.mp4
 
 # Compress at different CRF levels
-ffmpeg -i short_test.mp4 -c:v libx264 -crf 28 test_crf28.mp4 -y
-ffmpeg -i short_test.mp4 -c:v libx264 -crf 35 test_crf35.mp4 -y
-ffmpeg -i short_test.mp4 -c:v libx264 -crf 40 test_crf40.mp4 -y
+ffmpeg -i test_video.mp4 -c:v libx264 -crf 28 test_crf28.mp4 -y
+ffmpeg -i test_video.mp4 -c:v libx264 -crf 35 test_crf35.mp4 -y
+ffmpeg -i test_video.mp4 -c:v libx264 -crf 40 test_crf40.mp4 -y
 
-# Compare hashes (Hamming distance)
-python3 experiments/perceptual_hash.py test_crf28.mp4 30
-python3 experiments/perceptual_hash.py test_crf35.mp4 30
-python3 experiments/perceptual_hash.py test_crf40.mp4 30
+# Compare hashes
+python cli/compare.py test_video.mp4 test_crf28.mp4
+python cli/compare.py test_video.mp4 test_crf35.mp4
+python cli/compare.py test_video.mp4 test_crf40.mp4
 ```
 
-**Expected Results:**
+**Expected Results (UCF-101 Validated):**
 
-- CRF 28: 8 bits drift (3.1%)
-- CRF 35: 8 bits drift (3.1%)
-- CRF 40: 10 bits drift (3.9%)
+- CRF 28: 4-14 bits drift (1.6-5.5%) ✅ PASS
+- CRF 35: ~22 bits drift (8.6%) ✅ PASS
+- CRF 40: May exceed 30 bits (not recommended)
 
-All well under 30-bit detection threshold (11.7%).
+CRF 28-35 well under 30-bit detection threshold (11.7%).
 
 
 ### Automated Test Suite
 
-**Comprehensive test coverage (55+ tests, 85%+ coverage):**
+Run tests with pytest:
 
 ```bash
-./run_tests.sh          # Run all tests
-./run_tests.sh coverage # With coverage report
-./run_tests.sh unit     # Only unit tests
+pytest tests/                    # Run all tests
+pytest tests/ -v                 # Verbose output
+pytest tests/test_api.py         # Run specific test file
 ```
 
 **Test Categories:**
 
-- **Perceptual Hash Tests** - Feature extraction, hash generation, Hamming distance
-- **Radioactive Marking Tests** - PGD optimization, signature embedding, detection
-- **API Tests** - Flask endpoints, request validation, error handling
-- **CLI Tests** - Command-line interface, argument parsing, file I/O
+- **API Tests** - Flask endpoints, hash extraction, comparison, error handling
 
-See [tests/README.md](tests/README.md) and [TESTING_SUMMARY.md](TESTING_SUMMARY.md) for full documentation
+**Note:** Test suite has been streamlined to focus on perceptual hash tracking functionality.
 
 ---
 
@@ -335,8 +328,8 @@ curl -X POST http://localhost:5000/api/compare \
 **Reproducibility:**
 ```bash
 # Test perceptual hash on your own videos
-python experiments/perceptual_hash.py video.mp4 60
-python experiments/batch_hash_robustness.py test_batch_input/ 60 28
+python cli/extract.py video.mp4
+python cli/compare.py video.mp4 compressed_video.mp4
 ```
 
 See [COMPRESSION_LIMITS.md](docs/COMPRESSION_LIMITS.md) for technical details.
@@ -349,9 +342,9 @@ See [COMPRESSION_LIMITS.md](docs/COMPRESSION_LIMITS.md) for technical details.
 
 **Perceptual Hash Tracking:**
 
-- ✅ **Video fingerprinting** - 256-bit perceptual hash (CRF 28-40, 3-10 bit drift)
-- ✅ **Platform validation** - 6 major platforms tested (YouTube, TikTok, Facebook, Instagram, Vimeo, Twitter)
-- ✅ **Compression robustness** - Survives extreme compression (up to CRF 40)
+- ✅ **Video fingerprinting** - 256-bit perceptual hash (CRF 28: 4-14 bit drift on UCF-101)
+- ✅ **Platform validation** - YouTube, TikTok, Facebook, Instagram (CRF 28-35)
+- ✅ **Compression robustness** - Survives real-world platform compression (CRF 18-35)
 - ✅ **CLI & API** - Command-line tools and REST API for integration
 - ✅ **Forensic database** - SQLite storage for evidence collection
 - ✅ **Open source** - MIT licensed, transparent implementation

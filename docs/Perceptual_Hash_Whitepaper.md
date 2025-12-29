@@ -8,7 +8,7 @@
 
 ## Abstract
 
-We present Basilisk, an open-source compression-robust perceptual hash system for video fingerprinting and forensic tracking. Our system extracts perceptual features (Canny edges, Gabor textures, Laplacian saliency, RGB histograms) and projects them to a 256-bit cryptographic fingerprint that survives platform compression. Empirical validation demonstrates 3-10 bit drift at extreme compression levels (CRF 28-40), well under the 30-bit detection threshold (11.7%). Platform testing confirms hash stability across YouTube, TikTok, Facebook, Instagram, and Vimeo. This work enables content creators to build forensic evidence databases for legal action against unauthorized data usage and scraping.
+We present Basilisk, an open-source compression-robust perceptual hash system for video fingerprinting and forensic tracking. Our system extracts perceptual features (Canny edges, Gabor textures, Laplacian saliency, RGB histograms) and projects them to a 256-bit cryptographic fingerprint that survives platform compression. Empirical validation on UCF-101 benchmark videos demonstrates 4-14 bit drift at CRF 28 (mean: 8.7 bits, 3.4%), well under the 30-bit detection threshold (11.7%). The system is validated for real-world platform compression (CRF 18-35) used by YouTube, TikTok, Facebook, and Instagram. This work enables content creators to build forensic evidence databases for legal action against unauthorized data usage and scraping.
 
 **Keywords:** Perceptual hashing, video fingerprinting, compression robustness, data sovereignty, forensic tracking, content provenance
 
@@ -27,7 +27,7 @@ AI companies scrape billions of videos from the internet to train generative mod
 
 Content creators need a method to:
 1. Track unauthorized video usage across platforms
-2. Survive aggressive compression (CRF 28-40)
+2. Survive aggressive compression (CRF 28-35 real-world platforms)
 3. Build forensic evidence for DMCA/copyright claims
 4. Scale to large video databases
 
@@ -37,11 +37,10 @@ Basilisk implements a compression-robust perceptual hash that:
 
 1. **Extracts robust features** - Edges, textures, saliency, color (resist compression)
 2. **Projects to 256 bits** - Random projection with cryptographic seed
-3. **Survives CRF 28-40** - 3-10 bit drift empirically validated
+3. **Survives CRF 28-35** - 4-14 bit drift on UCF-101 (mean: 8.7 bits)
 4. **Enables forensic tracking** - Timestamp + hash database for legal evidence
-5. **Active Defense** - Capability to imperceptibly poison video to force a specific hash signature
 
-**Core Innovation:** Feature selection optimized for compression robustness, combined with a differentiable adversarial attack for active signature injection.
+**Core Innovation:** Feature selection optimized for compression robustness using perceptual features that H.264 codecs are designed to preserve.
 
 ---
 
@@ -156,7 +155,7 @@ def hamming_distance(hash1, hash2):
 - < 30 bits: Same video (accounting for compression drift)
 - ≥ 30 bits: Different video
 
-**Threshold Selection:** Empirically determined from UCF-101 dataset (99% true positive rate, < 1% false positive rate for CRF 28 compression).
+**Threshold Selection:** Conservative threshold chosen based on observed 4-14 bit drift at CRF 28 on UCF-101 (mean: 8.7 bits). Provides 2-3× safety margin over maximum observed drift. Large-scale false positive rate testing on full UCF-101/Kinetics datasets recommended for production deployment.
 
 ---
 
@@ -200,23 +199,27 @@ Detection Threshold: 30 bits (11.7%)
 All tests: PASS (drift 3-7× below threshold)
 ```
 
-### 3.3 Statistical Analysis
+### 3.3 Statistical Analysis (UCF-101 Real Videos)
 
-**Hash Stability:**
-- Mean drift: 8.5 bits
-- Std deviation: 1.2 bits
-- 95% confidence interval: [6.1, 10.9] bits
-- Probability of false negative (drift > 30): < 0.001%
+**Test Dataset:** 3 UCF-101 action recognition videos (PlayingGuitar, ApplyEyeMakeup, Basketball)
 
-**Platform Coverage:**
-- YouTube Mobile: ✅ CRF 28 → 8 bits
-- YouTube HD: ✅ CRF 23 → 8 bits
-- TikTok: ✅ CRF 28-35 → 8 bits
-- Facebook: ✅ CRF 28-32 → 0-14 bits
-- Instagram: ✅ CRF 28-30 → 8-14 bits
-- Vimeo Pro: ✅ CRF 18-20 → 8 bits
+**Hash Stability at CRF 28:**
+- Mean drift: 8.7 bits (3.4%)
+- Range: 4-14 bits (1.6-5.5%)
+- **Result:** All videos passed detection threshold (< 30 bits)
 
-**Conclusion:** Perceptual hash remains stable across all tested platforms and compression levels.
+**Compression Robustness:**
+- CRF 28 (YouTube/TikTok): 4-14 bits ✅ PASS
+- CRF 35 (Extreme): 22 bits ✅ PASS
+- CRF 40 (Garbage): 34 bits ❌ FAIL (exceeds threshold)
+
+**Platform Coverage (Empirical Testing):**
+- YouTube Mobile/HD: ✅ CRF 23-28
+- TikTok/Facebook: ✅ CRF 28-32
+- Instagram: ✅ CRF 28-30
+- Vimeo Pro: ✅ CRF 18-20
+
+**Conclusion:** Perceptual hash is stable for real-world platform compression (CRF 18-35). CRF 40+ may exceed threshold for some videos.
 
 ---
 
@@ -373,19 +376,6 @@ is_match = drift < 30
 3. **Automated alerts** - Flag matches above similarity threshold
 4. **Revenue recovery** - Issue DMCA, claim ad revenue
 
-### 5.4 Active Defense (Adversarial Poisoning)
-
-**Workflow:**
-1. **Generate Signature** - Create a cryptographic target hash (unrelated to video content)
-2. **Poison Video** - Use PGD attack to imperceptibly perturb pixels so the video's perceptual hash matches the target
-3. **Distribute** - Release the poisoned video
-4. **Prove Ownership** - Show that the video matches the arbitrary target signature (impossible by chance: $2^{-256}$ probability)
-
-**Technical Implementation:**
-- **Differentiable Surrogate:** Soft-differentiable approximations of Canny (Sobel), Gabor (Conv2d), and Histogram (Gaussian binning).
-- **Optimization:** minimize $L = \text{BCE}(\text{Hash}(V + \delta), \text{Target})$ subject to $||\delta||_\infty < \epsilon$.
-- **Result:** Video hash matches target with < 3 bits distance, surviving compression.
-
 ---
 
 ## 6. Limitations
@@ -419,9 +409,9 @@ is_match = drift < 30
 | pHash | 64 bits | ❌ No (near-duplicate only) | ✅ Yes | ❌ No | Production |
 | dHash | 64 bits | ❌ No | ✅ Yes | ❌ No | Production |
 | YouTube Content ID | Unknown | ✅ Yes | ✅ Yes | ✅ Yes | Proprietary |
-| **Basilisk** | 256 bits | ✅ Yes (CRF 28-40) | ✅ Yes | ⚠️ Partial | Open-source |
+| **Basilisk** | 256 bits | ✅ Yes (CRF 28-35) | ✅ Yes | ⚠️ Partial | Open-source |
 
-**Unique Contribution:** First open-source system validated for CRF 28+ compression.
+**Unique Contribution:** First open-source system validated on UCF-101 for CRF 28-35 compression.
 
 ---
 
@@ -455,13 +445,13 @@ is_match = drift < 30
 
 ## 8. Conclusion
 
-Basilisk provides a compression-robust perceptual hash system validated across 6 major platforms (YouTube, TikTok, Facebook, Instagram, Vimeo) with 3-10 bit drift at extreme compression levels (CRF 28-40). This enables content creators to build forensic evidence databases for legal action against unauthorized video usage and AI training data scraping.
+Basilisk provides a compression-robust perceptual hash system validated on UCF-101 benchmark videos with 4-14 bit drift at CRF 28 (mean: 8.7 bits, 3.4%). This enables content creators to build forensic evidence databases for legal action against unauthorized video usage and AI training data scraping.
 
 **Key Results:**
-- ✅ 3-10 bit drift at CRF 28-40 (7× below threshold)
-- ✅ Platform coverage: YouTube, TikTok, Facebook, Instagram, Vimeo
-- ✅ Open-source implementation with 75+ tests
-- ✅ Production-ready CLI, API, Web UI
+- ✅ 4-14 bit drift at CRF 28 on UCF-101 (2-3× safety margin)
+- ✅ Survives real-world platform compression (CRF 18-35)
+- ✅ Open-source implementation with 8 API tests
+- ✅ Production-ready CLI & API
 
 **Limitations:**
 - ⚠️ Collision rate not quantified on large datasets

@@ -12,8 +12,8 @@ Basilisk implements compression-robust video fingerprinting using perceptual fea
 
 - **Perceptual feature selection** for compression robustness (edges, textures, saliency, color)
 - **Random projection** for dimensionality reduction to 256-bit hash
-- **Empirical validation** across major platforms (YouTube, TikTok, Facebook, Instagram, Vimeo, Twitter)
-- **3-10 bit drift** at extreme compression (CRF 28-40)
+- **Empirical validation** on UCF-101 benchmark videos (action recognition dataset)
+- **4-14 bit drift** at CRF 28 (mean: 8.7 bits, 3.4%)
 - **Open-source implementation** with transparent limitations
 
 ---
@@ -52,7 +52,7 @@ Understanding codec behavior is critical for compression-robust fingerprinting. 
 
 **Basilisk's Insight:**
 
-Rather than fighting quantization, extract features the codec is designed to preserve. At CRF 28-40, codecs preserve edges, textures, and saliency - exactly the features Basilisk uses.
+Rather than fighting quantization, extract features the codec is designed to preserve. At CRF 18-35, codecs preserve edges, textures, and saliency - exactly the features Basilisk uses.
 
 ### 3. Random Projection & Dimensionality Reduction
 
@@ -87,7 +87,7 @@ Basilisk uses fingerprinting approach:
 
 | Approach | Compression Robustness | Open Source | Platform Validated |
 |----------|------------------------|-------------|-------------------|
-| **Basilisk (Ours)** | ✅ CRF 28-40 (3-10 bit drift) | ✅ MIT License | ✅ 6 platforms |
+| **Basilisk (Ours)** | ✅ CRF 28-35 (4-14 bit drift) | ✅ MIT License | ✅ UCF-101 validated |
 | YouTube ContentID | ✅ Proprietary | ❌ Closed | ✅ YouTube only |
 | PDQ (Facebook) | ⚠️ Images only | ✅ Open | ⚠️ Not for video |
 | PhotoDNA (Microsoft) | ⚠️ Images only | ❌ Closed | ⚠️ Not for video |
@@ -124,7 +124,7 @@ If you use Project Basilisk in academic research, please cite:
   year={2025},
   url={https://github.com/abendrothj/basilisk},
   license={MIT},
-  note={Empirical validation across 6 major platforms with 3-10 bit drift at CRF 28-40}
+  note={Empirical validation on UCF-101 benchmark with 4-14 bit drift at CRF 28 (mean: 8.7 bits)}
 }
 ```
 

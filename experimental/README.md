@@ -35,7 +35,7 @@ The **perceptual hash tracking** approach (in `/core/`) successfully solves the 
 
 - Working **with** codec design rather than against it
 - Extracting features codecs are designed to preserve (edges, textures, saliency, color)
-- Achieving 3-10 bit drift at CRF 28-40 (96-97% stability)
+- Achieving 4-14 bit drift at CRF 28 (mean: 8.7 bits, 94.5-98.4% stability on UCF-101)
 
 This is the production system - see main [README.md](../README.md)
 

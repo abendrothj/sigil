@@ -13,6 +13,7 @@ import json
 import hashlib
 from pathlib import Path
 import tempfile
+import numpy as np
 
 # Add core to path
 sys.path.append(str(Path(__file__).parent.parent))
@@ -117,7 +118,12 @@ def extract_hash():
         # Store in database
         metadata['original_filename'] = filename
         metadata['num_frames'] = len(frames)
-        hash_id = db.store_hash(hash_str, metadata)
+        hash_id = db.store_hash(
+            hash_bits,
+            file_path=str(input_path),
+            frame_count=len(frames),
+            metadata=metadata
+        )
 
         # Clean up
         input_path.unlink(missing_ok=True)
@@ -186,11 +192,12 @@ def compare_hash():
         else:
             return jsonify({'error': 'Provide either video file or hash string'}), 400
 
-        # Find matches
-        matches = db.find_matches(hash_str, threshold=threshold)
+        # Find matches - convert hash_str back to numpy array for query_similar
+        hash_bits_for_query = np.array([int(c) for c in hash_str])
+        matches = db.query_similar(hash_bits_for_query, threshold=threshold)
 
         # Calculate closest distance
-        closest_distance = min([m['distance'] for m in matches]) if matches else 256
+        closest_distance = min([m['hamming_distance'] for m in matches]) if matches else 256
 
         return jsonify({
             'success': True,
@@ -212,10 +219,13 @@ def compare_hash():
 def get_stats():
     """Get database statistics"""
     try:
-        total = db.get_total_hashes()
+        stats = db.get_stats()
         return jsonify({
             'success': True,
-            'total_hashes': total,
+            'total_hashes': stats['total_hashes'],
+            'by_platform': stats['by_platform'],
+            'oldest_entry': stats['oldest_entry'],
+            'newest_entry': stats['newest_entry'],
             'database_path': str(DB_PATH)
         })
     except Exception as e:
