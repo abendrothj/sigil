@@ -122,7 +122,7 @@ jobs:
     
     - name: Test docker-compose config
       run: |
-        docker-compose config --quiet
+        docker compose config --quiet
 
   security:
     name: Security Scan
