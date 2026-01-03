@@ -1,0 +1,51 @@
+# Ruff configuration for Sigil
+# See: https://docs.astral.sh/ruff/
+
+line-length = 100
+target-version = "py38"
+
+[lint]
+select = [
+    "E",      # pycodestyle errors
+    "W",      # pycodestyle warnings
+    "F",      # pyflakes
+    "I",      # isort
+    "N",      # pep8-naming
+    "UP",     # pyupgrade
+    "B",      # flake8-bugbear
+    "C4",     # flake8-comprehensions
+    "SIM",    # flake8-simplify
+    "RET",    # flake8-return
+]
+
+ignore = [
+    "E501",   # line too long (handled by formatter)
+    "B008",   # do not perform function calls in argument defaults
+    "B905",   # zip without explicit strict parameter
+    "N999",   # module name
+]
+
+# Allow autofix for all enabled rules
+fixable = ["ALL"]
+unfixable = []
+
+# Exclude directories
+exclude = [
+    ".git",
+    ".pytest_cache",
+    "__pycache__",
+    "venv",
+    "build",
+    "dist",
+    "*.egg-info",
+    "experimental",
+    "UCF-101",
+    "vid",
+]
+
+[lint.per-file-ignores]
+"__init__.py" = ["F401"]  # Unused imports
+"tests/*.py" = ["S101"]   # Use of assert
+
+[lint.isort]
+known-first-party = ["core", "cli", "api"]

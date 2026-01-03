@@ -1,0 +1,70 @@
+name: Weekly Code Quality Report
+
+on:
+  schedule:
+    # Run every Monday at 9 AM UTC
+    - cron: '0 9 * * 1'
+  workflow_dispatch:
+
+jobs:
+  code-quality-report:
+    name: Generate Code Quality Report
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install radon pylint bandit safety
+        pip install -r api/requirements.txt
+        pip install -r tests/requirements.txt
+    
+    - name: Calculate code complexity
+      run: |
+        echo "## Code Complexity Report" > report.md
+        echo "" >> report.md
+        echo "### Cyclomatic Complexity" >> report.md
+        radon cc core/ cli/ api/ -a -s >> report.md
+        echo "" >> report.md
+        echo "### Maintainability Index" >> report.md
+        radon mi core/ cli/ api/ -s >> report.md
+    
+    - name: Run security scan
+      run: |
+        echo "" >> report.md
+        echo "## Security Scan" >> report.md
+        bandit -r core/ cli/ api/ -f txt >> report.md || true
+    
+    - name: Check for vulnerable dependencies
+      run: |
+        echo "" >> report.md
+        echo "## Dependency Vulnerabilities" >> report.md
+        safety check --json > safety.json || true
+        cat safety.json >> report.md
+    
+    - name: Count lines of code
+      run: |
+        echo "" >> report.md
+        echo "## Lines of Code" >> report.md
+        echo "### By Directory" >> report.md
+        find core/ cli/ api/ tests/ -name "*.py" | xargs wc -l >> report.md
+    
+    - name: Create issue with report
+      uses: peter-evans/create-issue-from-file@v4
+      with:
+        title: Weekly Code Quality Report - ${{ github.run_number }}
+        content-filepath: report.md
+        labels: |
+          report
+          code-quality
+          automated

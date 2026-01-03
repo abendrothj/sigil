@@ -2,6 +2,7 @@
 
 > **First open-source perceptual hash system with cryptographic signatures for AI dataset accountability**
 
+[![CI](https://github.com/abendrothj/sigil/actions/workflows/ci.yml/badge.svg)](https://github.com/abendrothj/sigil/actions/workflows/ci.yml)
 [![MIT License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
 [![Novel Research](https://img.shields.io/badge/Novel-First%20of%20Its%20Kind-orange)](docs/Perceptual_Hash_Whitepaper.md)
