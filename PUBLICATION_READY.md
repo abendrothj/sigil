@@ -1,7 +1,7 @@
-# Publication Ready - CVPR Submission
+# Publication Ready
 
 **Date:** December 28, 2025
-**Status:** ✅ **READY FOR CVPR SUBMISSION**
+**Status:** ✅ **READY FOR PUBLICATION**
 
 ---
 
@@ -11,7 +11,7 @@ Sigil is now a clean, professional, production-ready project providing a **compl
 
 ---
 
-## For CVPR 2026 Submission
+## For Academic Publication
 
 ### Primary Paper
 
@@ -35,7 +35,7 @@ We present Sigil, an open-source compression-robust perceptual hash system for v
 
 ### Publication-Ready Documents
 
-**Core Technical (CVPR Submission):**
+**Core Technical (Academic Publication):**
 
 1. **[docs/Perceptual_Hash_Whitepaper.md](docs/Perceptual_Hash_Whitepaper.md)** ⭐
    - Comprehensive technical whitepaper
@@ -287,7 +287,7 @@ docker-compose up
 
 ## Venue
 
-**Target:** CVPR 2026, ICCV 2025, or USENIX Security
+**Target:** Computer Vision and Security conferences
 
 **Track:** Computer Vision / Multimedia / Security
 
@@ -343,7 +343,7 @@ docker-compose up
 ✅ **Honesty:** Limitations disclosed
 ✅ **Quality:** Academic-grade
 
-**READY FOR CVPR 2026 SUBMISSION** 🎉
+**READY FOR ACADEMIC PUBLICATION** 🎉
 
 ---
 

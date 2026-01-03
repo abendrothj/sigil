@@ -284,7 +284,7 @@ Testing video2.mp4...
 - Hash drift analysis at real-world compression levels (mean: 8.7 bits)
 - Open-source forensic tracking toolkit
 
-**Venue:** CVPR 2026, ICCV 2025, or USENIX Security
+**Venue:** Computer Vision and Security conferences
 
 ---
 

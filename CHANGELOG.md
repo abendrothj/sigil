@@ -19,7 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Docker Support**: Complete Docker and docker-compose configuration for easy deployment
 - **CI/CD Pipeline**: GitHub Actions workflows for automated testing, linting, and Docker builds
 - **Comprehensive Documentation**:
-  - Perceptual Hash Whitepaper (CVPR 2026 ready)
+  - Perceptual Hash Whitepaper (publication-ready)
   - Cryptographic Signatures Guide
   - Web2 Anchoring Guide
   - Quick Start Guide
@@ -82,7 +82,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Status
 - ✅ Production Ready
-- ✅ CVPR 2026 Submission Ready
+- ✅ Publication Ready
 - ✅ All Tests Passing
 - ✅ Docker Builds Verified
 - ✅ CI/CD Operational

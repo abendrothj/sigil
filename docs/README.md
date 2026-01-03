@@ -11,7 +11,7 @@
 1. **[Perceptual_Hash_Whitepaper.md](Perceptual_Hash_Whitepaper.md)** ⭐
    - Comprehensive technical whitepaper
    - Methodology, empirical validation, reproducibility
-   - Primary document for CVPR submission
+   - Primary document for academic publication
 
 2. **[CRYPTOGRAPHIC_SIGNATURES.md](CRYPTOGRAPHIC_SIGNATURES.md)** ⭐ NEW
    - Complete Ed25519 signature system (500+ lines)
@@ -62,7 +62,7 @@
 
 ## Document Hierarchy
 
-**For Academic Publication (CVPR):**
+**For Academic Publication:**
 1. Perceptual_Hash_Whitepaper.md (primary)
 2. COMPRESSION_LIMITS.md (technical deep-dive)
 3. APPROACH.md (implementation details)
@@ -108,7 +108,7 @@ These are preserved for historical reference but not needed for publication.
 
 ---
 
-## For CVPR Submission
+## For Academic Submission
 
 **Required Documents:**
 1. Perceptual_Hash_Whitepaper.md - Main technical paper
@@ -133,7 +133,7 @@ All experiments are fully reproducible via:
 
 | Document | Status | Purpose |
 |----------|--------|---------|
-| Perceptual_Hash_Whitepaper.md | ✅ Publication-ready | CVPR submission |
+| Perceptual_Hash_Whitepaper.md | ✅ Publication-ready | Academic submission |
 | **CRYPTOGRAPHIC_SIGNATURES.md** | ✅ **Production-ready** | **Ed25519 signature system** |
 | **ANCHORING_GUIDE.md** | ✅ **Production-ready** | **Web2 timestamp oracles** |
 | **QUICK_START.md** | ✅ **Production-ready** | **User guide** |
