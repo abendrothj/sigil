@@ -1,4 +1,4 @@
-# Basilisk Documentation
+# Sigil Documentation
 
 **Technical documentation for compression-robust perceptual hashing with cryptographic signatures for AI dataset accountability.**
 
@@ -125,7 +125,7 @@ These are preserved for historical reference but not needed for publication.
 All experiments are fully reproducible via:
 - `core/perceptual_hash.py` - Main implementation
 - `cli/extract.py`, `cli/compare.py` - Command-line tools
-- `notebooks/Basilisk_Demo.ipynb` - Interactive demo
+- `notebooks/Sigil_Demo.ipynb` - Interactive demo
 
 ---
 

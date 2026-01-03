@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Manage Basilisk signing identities
+Manage Sigil signing identities
 
 Usage:
     python -m cli.identity show              # Show current identity
@@ -21,13 +21,13 @@ from pathlib import Path
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from core.crypto_signatures import BasiliskIdentity
+from core.crypto_signatures import SigilIdentity
 
 
 def cmd_show(args):
     """Show current identity information"""
     try:
-        identity = BasiliskIdentity()
+        identity = SigilIdentity()
 
         if not identity.private_key:
             print("❌ No identity found")
@@ -38,7 +38,7 @@ def cmd_show(args):
             print(f"   python -m cli.identity generate")
             sys.exit(1)
 
-        print("✅ Basilisk Identity Found")
+        print("✅ Sigil Identity Found")
         print()
         print(f"🔐 Key ID: {identity.key_id}")
         print(f"📁 Private key: {identity.private_key_path}")
@@ -62,7 +62,7 @@ def cmd_show(args):
 def cmd_generate(args):
     """Generate new identity"""
     try:
-        identity = BasiliskIdentity()
+        identity = SigilIdentity()
 
         # Check if identity already exists
         if identity.private_key_path.exists() and not args.overwrite:
@@ -105,7 +105,7 @@ def cmd_generate(args):
 def cmd_export(args):
     """Export public key"""
     try:
-        identity = BasiliskIdentity()
+        identity = SigilIdentity()
 
         if not identity.private_key:
             print(f"❌ No identity found. Generate one first:", file=sys.stderr)
@@ -139,7 +139,7 @@ def cmd_import(args):
             print(f"❌ Key file not found: {import_path}", file=sys.stderr)
             sys.exit(1)
 
-        identity = BasiliskIdentity()
+        identity = SigilIdentity()
 
         # Check if identity already exists
         if identity.private_key_path.exists() and not args.overwrite:
@@ -173,7 +173,7 @@ def cmd_import(args):
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Manage Basilisk signing identities",
+        description="Manage Sigil signing identities",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Commands:

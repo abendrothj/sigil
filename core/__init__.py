@@ -1,5 +1,5 @@
 """
-Basilisk Core - Compression-Robust Perceptual Hash Tracking
+Sigil Core - Compression-Robust Perceptual Hash Tracking
 
 This module provides the primary functionality for extracting, comparing,
 and storing perceptual hashes from video content.

@@ -275,7 +275,7 @@ Testing video2.mp4...
 
 ### Paper Potential
 
-**Title:** "Basilisk: Compression-Robust Perceptual Hash Tracking for Video Provenance"
+**Title:** "Sigil: Compression-Robust Perceptual Hash Tracking for Video Provenance"
 
 **Contributions:**
 - First compression-robust video fingerprinting system (CRF 18-35)

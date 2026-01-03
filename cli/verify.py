@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Verify Basilisk cryptographic signature
+Verify Sigil cryptographic signature
 
 Usage:
     python -m cli.verify SIGNATURE_FILE [OPTIONS]
@@ -17,12 +17,12 @@ from pathlib import Path
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from core.crypto_signatures import SignatureManager, BasiliskIdentity
+from core.crypto_signatures import SignatureManager, SigilIdentity
 
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Verify Basilisk cryptographic signature for video hash ownership proof"
+        description="Verify Sigil cryptographic signature for video hash ownership proof"
     )
     parser.add_argument(
         "signature_file",

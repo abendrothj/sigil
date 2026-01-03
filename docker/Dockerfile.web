@@ -1,4 +1,4 @@
-# Dockerfile for Basilisk Web UI
+# Dockerfile for Sigil Web UI
 FROM node:18-alpine
 
 WORKDIR /app

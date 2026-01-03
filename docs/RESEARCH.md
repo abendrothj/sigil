@@ -1,14 +1,14 @@
 # Research Foundation & Attribution
 
-**Project Basilisk** - Compression-Robust Perceptual Hash Tracking for Video Forensics
+**Project Sigil** - Compression-Robust Perceptual Hash Tracking for Video Forensics
 
-This document provides academic citations and explains the research foundation for Basilisk's perceptual hash tracking system.
+This document provides academic citations and explains the research foundation for Sigil's perceptual hash tracking system.
 
 ---
 
 ## Overview
 
-Basilisk implements compression-robust video fingerprinting using perceptual features. The approach is novel in:
+Sigil implements compression-robust video fingerprinting using perceptual features. The approach is novel in:
 
 - **Perceptual feature selection** for compression robustness (edges, textures, saliency, color)
 - **Random projection** for dimensionality reduction to 256-bit hash
@@ -32,7 +32,7 @@ Perceptual hashing creates fingerprints that remain stable under transformations
 - **"Perceptual Hashing for Multimedia Content Protection"** (Swaminathan et al., 2006) - Theoretical foundation for robust fingerprinting
 - **"A Survey of Perceptual Hashing Methods for Multimedia"** (Yan et al., 2011) - Comprehensive review of perceptual hash methods
 
-**Basilisk's Contribution:**
+**Sigil's Contribution:**
 
 Novel combination of features specifically chosen for H.264 compression robustness:
 - Canny edges (survive quantization)
@@ -50,9 +50,9 @@ Understanding codec behavior is critical for compression-robust fingerprinting. 
 - Motion compensation
 - Entropy coding
 
-**Basilisk's Insight:**
+**Sigil's Insight:**
 
-Rather than fighting quantization, extract features the codec is designed to preserve. At CRF 18-35, codecs preserve edges, textures, and saliency - exactly the features Basilisk uses.
+Rather than fighting quantization, extract features the codec is designed to preserve. At CRF 18-35, codecs preserve edges, textures, and saliency - exactly the features Sigil uses.
 
 ### 3. Random Projection & Dimensionality Reduction
 
@@ -63,7 +63,7 @@ Random projection preserves distances in high-dimensional space while reducing d
 - Computational efficiency (matrix multiplication)
 - No training required
 
-**Basilisk Implementation:**
+**Sigil Implementation:**
 - Feature vector: ~200K dimensions (edges + textures + saliency + histogram)
 - Projection: Random Gaussian matrix (seed=42) → 256 dimensions
 - Binarization: Median threshold → 256-bit hash
@@ -76,7 +76,7 @@ Forensic fingerprinting differs from watermarking:
 - **Watermarking:** Embeds information in content
 - **Fingerprinting:** Extracts inherent characteristics
 
-Basilisk uses fingerprinting approach:
+Sigil uses fingerprinting approach:
 - No content modification required
 - Publicly verifiable (anyone can compute hash)
 - Suitable for legal evidence (reproducible proof)
@@ -87,7 +87,7 @@ Basilisk uses fingerprinting approach:
 
 | Approach | Compression Robustness | Open Source | Platform Validated |
 |----------|------------------------|-------------|-------------------|
-| **Basilisk (Ours)** | ✅ CRF 28-35 (4-14 bit drift) | ✅ MIT License | ✅ UCF-101 validated |
+| **Sigil (Ours)** | ✅ CRF 28-35 (4-14 bit drift) | ✅ MIT License | ✅ UCF-101 validated |
 | YouTube ContentID | ✅ Proprietary | ❌ Closed | ✅ YouTube only |
 | PDQ (Facebook) | ⚠️ Images only | ✅ Open | ⚠️ Not for video |
 | PhotoDNA (Microsoft) | ⚠️ Images only | ❌ Closed | ⚠️ Not for video |
@@ -104,7 +104,7 @@ Basilisk uses fingerprinting approach:
 
 ### Our Contribution
 
-Basilisk **does** contribute:
+Sigil **does** contribute:
 1. **Novel feature combination** for video compression robustness
 2. **Empirical platform validation** across 6 major services
 3. **Open-source implementation** with transparent limitations
@@ -115,14 +115,14 @@ Basilisk **does** contribute:
 
 ## Citation
 
-If you use Project Basilisk in academic research, please cite:
+If you use Project Sigil in academic research, please cite:
 
 ```bibtex
-@software{basilisk2025,
-  title={Basilisk: Compression-Robust Perceptual Hash Tracking for Video Forensics},
+@software{sigil2025,
+  title={Sigil: Compression-Robust Perceptual Hash Tracking for Video Forensics},
   author={Abendroth, Jake},
   year={2025},
-  url={https://github.com/abendrothj/basilisk},
+  url={https://github.com/abendrothj/sigil},
   license={MIT},
   note={Empirical validation on UCF-101 benchmark with 4-14 bit drift at CRF 28 (mean: 8.7 bits)}
 }

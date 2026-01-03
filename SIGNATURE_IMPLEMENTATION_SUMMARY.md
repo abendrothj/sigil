@@ -2,7 +2,7 @@
 
 ## Executive Summary
 
-Basilisk now implements a complete **"Chain of Custody"** system for video content ownership using Ed25519 cryptographic signatures and Web2 timestamp oracles. This transforms Basilisk from a forensic tracking tool into a legally-defensible ownership proof system.
+Sigil now implements a complete **"Chain of Custody"** system for video content ownership using Ed25519 cryptographic signatures and Web2 timestamp oracles. This transforms Sigil from a forensic tracking tool into a legally-defensible ownership proof system.
 
 ---
 
@@ -18,7 +18,7 @@ Basilisk now implements a complete **"Chain of Custody"** system for video conte
 - Automatic identity generation on first use
 
 **Key Classes:**
-- `BasiliskIdentity`: Manages Ed25519 keypairs
+- `SigilIdentity`: Manages Ed25519 keypairs
 - `SignatureManager`: High-level API for creating/verifying signature files
 
 **Security Properties:**
@@ -160,7 +160,7 @@ python3 tests/test_crypto_signatures.py
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                  BASILISK DEFENSE SYSTEM                     │
+│                  SIGIL DEFENSE SYSTEM                        │
 ├─────────────────────────────────────────────────────────────┤
 │                                                              │
 │  1. PERCEPTUAL HASH (Public Truth)                          │
@@ -337,14 +337,14 @@ python -m cli.compare documentary.mp4 openai_sample.mp4
 
 ### Default Mode: "The Toy"
 ```bash
-basilisk extract video.mp4
+sigil extract video.mp4
 # → Hash extracted, NO signature
 # → Immediate gratification
 ```
 
 ### Pro Mode: "The Tool"
 ```bash
-basilisk extract video.mp4 --sign
+sigil extract video.mp4 --sign
 # → Hash + signature
 # → Legal protection
 ```
@@ -355,7 +355,7 @@ basilisk extract video.mp4 --sign
 
 ## Comparison to Alternatives
 
-| Feature | Basilisk | C2PA (Adobe) | Blockchain NFT | PGP |
+| Feature | Sigil | C2PA (Adobe) | Blockchain NFT | PGP |
 |---------|----------|--------------|----------------|-----|
 | **Survives re-encoding** | ✅ Perceptual | ❌ Metadata | ❌ Exact hash | ❌ Exact hash |
 | **Free** | ✅ Yes | ⚠️ Tools cost | ❌ Gas fees | ✅ Yes |
@@ -363,7 +363,7 @@ basilisk extract video.mp4 --sign
 | **Setup time** | ✅ <1 min | ⚠️ Hours | ❌ Days | ❌ Hours |
 | **Crypto complexity** | ✅ Hidden | ✅ Hidden | ❌ Visible | ❌ Visible |
 
-**Verdict:** Basilisk combines the best of all approaches.
+**Verdict:** Sigil combines the best of all approaches.
 
 ---
 
@@ -405,12 +405,12 @@ basilisk extract video.mp4 --sign
 
 ## Compliance and Legal
 
-### What Basilisk Does:
+### What Sigil Does:
 ✅ Provides technical evidence of hash ownership
 ✅ Creates tamper-proof timestamp proof
 ✅ Shifts burden of proof in legal disputes
 
-### What Basilisk Doesn't Do:
+### What Sigil Doesn't Do:
 ❌ Provide legal advice
 ❌ Guarantee legal ownership
 ❌ Replace attorney consultation
@@ -471,7 +471,7 @@ basilisk extract video.mp4 --sign
 - `docs/ANCHORING_GUIDE.md` - Anchoring tutorial
 - `docs/QUICK_START.md` - Getting started
 
-**Issues:** [GitHub Issues](https://github.com/yourname/basilisk/issues)
+**Issues:** [GitHub Issues](https://github.com/yourname/sigil/issues)
 
 **License:** MIT
 

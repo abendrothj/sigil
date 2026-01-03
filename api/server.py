@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Basilisk API Server
+Sigil API Server
 Flask backend for perceptual hash tracking service
 """
 
@@ -21,7 +21,7 @@ sys.path.append(str(Path(__file__).parent.parent))
 try:
     from core.perceptual_hash import load_video_frames, extract_perceptual_features, compute_perceptual_hash, hamming_distance
     from core.hash_database import HashDatabase
-    from core.crypto_signatures import SignatureManager, BasiliskIdentity
+    from core.crypto_signatures import SignatureManager, SigilIdentity
 except ImportError as e:
     print(f"Error importing core modules: {e}")
     print("Make sure core/ is in the correct location")
@@ -33,11 +33,11 @@ CORS(app)
 # Configuration
 app.config['MAX_CONTENT_LENGTH'] = 500 * 1024 * 1024  # 500MB max for videos
 ALLOWED_EXTENSIONS = {'mp4', 'avi', 'mov', 'mkv'}
-TEMP_DIR = Path(tempfile.gettempdir()) / 'basilisk'
+TEMP_DIR = Path(tempfile.gettempdir()) / 'sigil'
 TEMP_DIR.mkdir(exist_ok=True)
 
 # Initialize database
-DB_PATH = Path(__file__).parent.parent / 'basilisk_hashes.db'
+DB_PATH = Path(__file__).parent.parent / 'sigil_hashes.db'
 db = HashDatabase(str(DB_PATH))
 
 def allowed_file(filename):
@@ -49,7 +49,7 @@ def health():
     """Health check endpoint"""
     return jsonify({
         'status': 'healthy',
-        'service': 'basilisk-hash-api',
+        'service': 'sigil-hash-api',
         'version': '1.0.0',
         'feature': 'perceptual_hash_tracking'
     })
@@ -290,7 +290,7 @@ def verify_signature():
         signature_doc = request.json['signature']
 
         # Verify signature
-        is_valid, error = BasiliskIdentity.verify_signature(signature_doc)
+        is_valid, error = SigilIdentity.verify_signature(signature_doc)
 
         if is_valid:
             return jsonify({
@@ -326,7 +326,7 @@ def get_identity():
         - public_key: string (PEM format)
     """
     try:
-        identity = BasiliskIdentity()
+        identity = SigilIdentity()
 
         if not identity.private_key:
             return jsonify({
@@ -359,7 +359,7 @@ def generate_identity():
     """
     try:
         # In production, this should require authentication
-        identity = BasiliskIdentity()
+        identity = SigilIdentity()
 
         # Check if identity exists
         if identity.private_key and not request.json.get('overwrite', False):
@@ -375,7 +375,7 @@ def generate_identity():
             'key_id': identity.key_id,
             'public_key': identity.export_public_key(),
             'algorithm': 'Ed25519',
-            'warning': 'Private key stored unencrypted at ~/.basilisk/identity.pem'
+            'warning': 'Private key stored unencrypted at ~/.sigil/identity.pem'
         })
 
     except Exception as e:
@@ -384,7 +384,7 @@ def generate_identity():
 
 if __name__ == '__main__':
     print("=" * 60)
-    print("🐍 Basilisk Perceptual Hash Tracking API")
+    print("✨ Sigil Perceptual Hash Tracking API")
     print("=" * 60)
     print("Starting Flask server on http://localhost:5000")
     print("Endpoints:")

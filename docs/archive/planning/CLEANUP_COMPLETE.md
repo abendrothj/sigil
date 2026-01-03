@@ -7,14 +7,14 @@
 
 ## Summary
 
-Basilisk has been completely restructured and cleaned. The project is now organized as a professional, academic-grade perceptual hash tracking system with experimental research clearly isolated.
+Sigil has been completely restructured and cleaned. The project is now organized as a professional, academic-grade perceptual hash tracking system with experimental research clearly isolated.
 
 ---
 
 ## Final Directory Structure
 
 ```
-basilisk/                              # Clean root directory
+sigil/                              # Clean root directory
 │
 ├── core/                              # 🎯 PRIMARY: Perceptual hash system
 ├── cli/                               # 💻 Command-line interface
@@ -288,7 +288,7 @@ docker-compose down
 
 ---
 
-**Project Basilisk is now ready for:**
+**Project Sigil is now ready for:**
 - Production deployment
 - Academic publication
 - Open source launch

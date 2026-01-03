@@ -1,6 +1,6 @@
 # Credits & Acknowledgments
 
-Project Basilisk exists thanks to the foundational work of researchers, open-source contributors, and the creative community fighting for their rights.
+Project Sigil exists thanks to the foundational work of researchers, open-source contributors, and the creative community fighting for their rights.
 
 ---
 
@@ -15,7 +15,7 @@ Project Basilisk exists thanks to the foundational work of researchers, open-sou
 **Repository:** https://github.com/facebookresearch/radioactive_data  
 **Citation:** Sablayrolles et al., "Radioactive data: tracing through training", ICML 2020
 
-Without this foundational work, Project Basilisk would not exist. We are deeply grateful for their open research and code release.
+Without this foundational work, Project Sigil would not exist. We are deeply grateful for their open research and code release.
 
 ---
 
@@ -97,7 +97,7 @@ This project is inspired by and built in solidarity with:
 **Ben Zhao, Shawn Shan** *(University of Chicago)*  
 **Project:** Glaze & Nightshade  
 **Impact:** Pioneering adversarial tools for artist protection (style cloaking and data poisoning).  
-**Note:** Basilisk complements their work by adding video support and detection capabilities.
+**Note:** Sigil complements their work by adding video support and detection capabilities.
 
 ---
 
@@ -132,7 +132,7 @@ We oppose:
 
 ## How to Contribute
 
-Project Basilisk is open for collaboration:
+Project Sigil is open for collaboration:
 
 **Code Contributions:**
 - Video poisoning optimization
@@ -151,7 +151,7 @@ Project Basilisk is open for collaboration:
 - Tutorial videos and guides
 - Bug reports and feature requests
 
-**Contact:** [GitHub Issues](https://github.com/abendrothj/basilisk/issues)
+**Contact:** [GitHub Issues](https://github.com/abendrothj/sigil/issues)
 
 ---
 
@@ -184,15 +184,15 @@ We want maximum adoption. Artists should be able to integrate this into commerci
 
 ## Academic Integrity
 
-If you use Project Basilisk in published research, please cite:
+If you use Project Sigil in published research, please cite:
 
 1. **This project:**
    ```
-   @software{basilisk2025,
-     title={Project Basilisk: Multi-Modal Data Poisoning for AI Training Protection},
+   @software{sigil2025,
+     title={Project Sigil: Multi-Modal Data Poisoning for AI Training Protection},
      author={[Jake Abendroth]},
      year={2026},
-     url={https://github.com/abendrothj/basilisk}
+     url={https://github.com/abendrothj/sigil}
    }
    ```
 

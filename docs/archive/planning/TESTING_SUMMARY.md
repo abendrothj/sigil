@@ -1,4 +1,4 @@
-# 🧪 Project Basilisk - Test Suite Summary
+# 🧪 Project Sigil - Test Suite Summary
 
 ## Overview
 
@@ -35,7 +35,7 @@ Complete test coverage for the radioactive data poisoning platform with 75+ test
 **What's Tested:**
 - Signature generation (deterministic & random)
 - Cryptographic seed handling
-- Image poisoning pipeline
+- Image poisoning pip3eline
 - Feature extraction
 - Signature persistence (save/load JSON)
 - Detection algorithm
@@ -297,7 +297,7 @@ TOTAL                               590     83    86%
 **"Module not found"**
 ```bash
 source venv/bin/activate
-pip install -r tests/requirements.txt
+pip3 install -r tests/requirements.txt
 ```
 
 **"CUDA not available"**
@@ -348,5 +348,5 @@ pytest tests/ -m "not slow"
 ---
 
 **Last Updated:** 2025  
-**Maintained By:** Project Basilisk Team  
+**Maintained By:** Project Sigil Team  
 **Run Tests:** `./run_tests.sh`

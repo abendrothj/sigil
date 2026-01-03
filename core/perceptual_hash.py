@@ -1,5 +1,5 @@
 
-# Perceptual Hash for Video Robustness (Basilisk Project)
+# Perceptual Hash for Video Robustness (Sigil Project)
 # ------------------------------------------------------
 # Extracts robust, compression-resistant features from video frames and computes a perceptual hash.
 # Designed for forensic video tracking and evidence collection.

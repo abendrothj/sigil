@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "🧪 Running Project Basilisk Test Suite"
+echo "🧪 Running Project Sigil Test Suite"
 echo "========================================"
 echo ""
 
@@ -14,7 +14,7 @@ fi
 
 # Install test dependencies
 echo "Installing test dependencies..."
-pip install -q -r tests/requirements.txt
+pip3 install -q -r tests/requirements.txt
 
 echo ""
 echo "Running tests..."

@@ -1,11 +1,11 @@
-# Verification Proof - Basilisk Complete Chain of Custody System
+# Verification Proof - Sigil Complete Chain of Custody System
 
 **Date:** December 29, 2025
 **Status:** ✅ **PERCEPTUAL HASH VERIFIED** | ✅ **CRYPTOGRAPHIC SIGNATURES VERIFIED**
 
 ## Executive Summary
 
-Project Basilisk provides a complete chain of custody system for video content:
+Project Sigil provides a complete chain of custody system for video content:
 
 **Perceptual Hash Tracking** (Production ✅) - Compression-robust video fingerprinting verified on UCF-101 real videos with 4-14 bit drift at CRF 28 (mean: 8.7 bits, 3.4%).
 
@@ -165,7 +165,7 @@ print(f'Drift: {hamming_distance(hash_orig, hash_compressed)}/256 bits')
 2. **Large-scale collision analysis** - Quantify false positive rate on datasets like UCF-101 or Kinetics
 3. **Rescaling robustness** - Test hash stability across resolution changes (1080p → 720p → 480p)
 4. **Temporal robustness** - Test against frame insertion, deletion, and reordering attacks
-5. **Cross-platform validation** - Expand testing to more platforms and encoding pipelines
+5. **Cross-platform validation** - Expand testing to more platforms and encoding pip3elines
 
 ### Security Improvements
 
@@ -287,7 +287,7 @@ Ed25519 digital signatures provide mathematically-verifiable ownership proof wit
 - Open-source implementation with comprehensive test coverage
 - Honest disclosure of limitations (CRF 40 may exceed threshold)
 
-**Project Basilisk's contribution is a complete chain of custody system for video content - combining compression-robust perceptual hash tracking with cryptographic ownership proof and legally-defensible timestamp anchoring.**
+**Project Sigil's contribution is a complete chain of custody system for video content - combining compression-robust perceptual hash tracking with cryptographic ownership proof and legally-defensible timestamp anchoring.**
 
 ---
 

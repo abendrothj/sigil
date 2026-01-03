@@ -7,14 +7,14 @@
 
 ## What Changed
 
-Basilisk has been restructured to focus on **perceptual hash tracking** as the primary, production-ready technology, with radioactive data marking isolated as experimental research.
+Sigil has been restructured to focus on **perceptual hash tracking** as the primary, production-ready technology, with radioactive data marking isolated as experimental research.
 
 ---
 
 ## New Directory Structure
 
 ```
-basilisk/
+sigil/
 ├── core/                          # ✅ NEW: Primary perceptual hash system
 │   ├── perceptual_hash.py            # Hash extraction (from experiments/)
 │   ├── batch_robustness.py           # Batch testing
@@ -108,7 +108,7 @@ python -m cli.compare hash1.txt hash2.txt --hash-input
 ### 5. Documentation Updated
 
 - `README.md` - Rewritten for perceptual hash focus
-- `notebooks/Basilisk_Demo.ipynb` - Updated demo
+- `notebooks/Sigil_Demo.ipynb` - Updated demo
 - `docs/LAUNCH_HN.md` - HN launch post
 - `experimental/README.md` - Warnings about experimental code
 

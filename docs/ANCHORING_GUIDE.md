@@ -30,7 +30,7 @@ Without a timestamp oracle, an attacker could argue:
 │    └─ Result: Public, timestamped post                      │
 │                                                              │
 │  Step 3: Anchor URL to Signature (Automated)                │
-│    ├─ Run: basilisk anchor --twitter <tweet_url>           │
+│    ├─ Run: sigil anchor --twitter <tweet_url>           │
 │    └─ Adds URL to signature.json["anchors"]                 │
 │                                                              │
 │  Result: Mathematical Proof + Legal Timestamp               │
@@ -75,7 +75,7 @@ cat my_video.mp4.signature.json
 🔐 Key ID: SHA256:Abc123XyZ...
 🔏 Signature: <paste from proof.signature>
 
-Verifiable proof via @BasiliskProject
+Verifiable proof via @SigilProject
 #ContentOwnership #DMCA #CopyrightProof
 ```
 
@@ -88,7 +88,7 @@ Verifiable proof via @BasiliskProject
 🔏 Signature: MEUCIQCx1y2z3a4b5c6d7e8f9g0h1i2j3k4l5m6n7o8p9q0r1s2t3uAiEAv4w5x6y7z8a9b0c1d2e3f4g5h6i7j8k9l0m1n2o3p4q==
 
 Created: 2025-12-29
-Verifiable via Basilisk
+Verifiable via Sigil
 
 #VideoOwnership #DMCA
 ```
@@ -253,7 +253,7 @@ When you anchor, the tool modifies your `signature.json` to add an `anchors` arr
 2. You anchor that post's URL to your local signature.json
 3. Others verify by viewing your public post and checking the signature mathematically
 
-### By Hand (No Basilisk Installed)
+### By Hand (No Sigil Installed)
 
 **1. View the public post** (Twitter/GitHub/Gist) to get:
 
@@ -270,7 +270,7 @@ When you anchor, the tool modifies your `signature.json` to add an `anchors` arr
 - **Signature:** Base64-decode the signature value
 - **Public Key:** Base64-decode the public key
 
-### With Basilisk (If You Have the signature.json File)
+### With Sigil (If You Have the signature.json File)
 
 ```bash
 # If the creator shared their signature.json file directly:
@@ -431,7 +431,7 @@ The archive timestamp will be LATER than your original post, so it's redundant f
 ### ✅ DO:
 - Anchor within 24 hours of creation
 - Use multiple platforms (Twitter + GitHub)
-- Keep a backup of your `~/.basilisk/identity.pem`
+- Keep a backup of your `~/.sigil/identity.pem`
 - Post signature publicly before distribution
 - Screenshot your tweets/gists as additional backup
 

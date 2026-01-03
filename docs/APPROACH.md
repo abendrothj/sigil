@@ -27,7 +27,7 @@ Embed the signature in perceptual features (edges, textures, motion, saliency, c
 
 ---
 
-This document explains how Project Basilisk works under the hood, from mathematical foundations to system architecture.
+This document explains how Project Sigil works under the hood, from mathematical foundations to system architecture.
 
 ---
 
@@ -162,7 +162,7 @@ Given a suspect model `M` and signature `s`:
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                      Project Basilisk                        │
+│                      Project Sigil                        │
 ├─────────────────────────────────────────────────────────────┤
 │                                                               │
 │  ┌───────────────┐  ┌──────────────┐  ┌──────────────┐     │
@@ -212,7 +212,7 @@ Return: Is poisoned? (Yes/No) + Confidence score (0-1)
 ### 3.3 File Structure
 
 ```
-basilisk/
+sigil/
 ├── poison-core/
 │   ├── radioactive_poison.py   # Core algorithm
 │   ├── poison_cli.py            # Command-line interface
@@ -432,7 +432,7 @@ poisoned_text = watermarker.mark(text, signature)
 
 ## Conclusion
 
-Project Basilisk transforms cutting-edge research (radioactive data) into practical tooling. The mathematical foundation is solid (peer-reviewed ICML paper), the implementation is efficient (< 30ms/image), and the approach is extensible (video, code, audio coming in Phase 2-3).
+Project Sigil transforms cutting-edge research (radioactive data) into practical tooling. The mathematical foundation is solid (peer-reviewed ICML paper), the implementation is efficient (< 30ms/image), and the approach is extensible (video, code, audio coming in Phase 2-3).
 
 **Next Steps:**
 1. Complete Phase 1 web UI

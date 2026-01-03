@@ -1,12 +1,12 @@
 """
-Basilisk Cryptographic Signatures Module
+Sigil Cryptographic Signatures Module
 
 Implements Ed25519 digital signatures for proving ownership of perceptual video hashes.
 This creates a "chain of custody" for video content without relying on blockchain.
 
 Philosophy: "PGP for Video" - Make crypto invisible unless explicitly needed.
 
-Author: Basilisk Project
+Author: Sigil Project
 License: MIT
 """
 
@@ -22,9 +22,9 @@ from cryptography.hazmat.primitives.asymmetric import ed25519
 from cryptography.hazmat.primitives import serialization
 
 
-class BasiliskIdentity:
+class SigilIdentity:
     """
-    Manages Ed25519 signing identities for Basilisk perceptual hashes.
+    Manages Ed25519 signing identities for Sigil perceptual hashes.
 
     Design decisions:
     - Ed25519: Modern, fast, 32-byte keys (vs 2048-bit RSA)
@@ -33,7 +33,7 @@ class BasiliskIdentity:
     - Key ID: SHA256 fingerprint for human-readable identification
     """
 
-    DEFAULT_KEY_DIR = Path.home() / ".basilisk"
+    DEFAULT_KEY_DIR = Path.home() / ".sigil"
     DEFAULT_PRIVATE_KEY = DEFAULT_KEY_DIR / "identity.pem"
     DEFAULT_PUBLIC_KEY = DEFAULT_KEY_DIR / "identity.pub"
 
@@ -42,7 +42,7 @@ class BasiliskIdentity:
         Initialize identity manager.
 
         Args:
-            key_path: Custom path to private key file (default: ~/.basilisk/identity.pem)
+            key_path: Custom path to private key file (default: ~/.sigil/identity.pem)
         """
         self.private_key_path = Path(key_path) if key_path else self.DEFAULT_PRIVATE_KEY
         self.public_key_path = self.private_key_path.with_suffix('.pub')
@@ -55,7 +55,7 @@ class BasiliskIdentity:
             self._load_keys()
 
     def _ensure_key_directory(self):
-        """Create ~/.basilisk/ directory if it doesn't exist."""
+        """Create ~/.sigil/ directory if it doesn't exist."""
         self.private_key_path.parent.mkdir(parents=True, exist_ok=True)
 
     def generate(self, overwrite: bool = False) -> Tuple[str, str]:
@@ -133,12 +133,12 @@ class BasiliskIdentity:
             Key ID (SHA256 fingerprint)
         """
         if not self.private_key:
-            print(f"[Basilisk] Generating new Ed25519 identity...")
+            print(f"[Sigil] Generating new Ed25519 identity...")
             priv_path, pub_path = self.generate()
-            print(f"[Basilisk] ✓ Identity created: {self.key_id}")
-            print(f"[Basilisk]   Private key: {priv_path}")
-            print(f"[Basilisk]   Public key:  {pub_path}")
-            print(f"[Basilisk]   (Keys stored unencrypted like SSH keys)")
+            print(f"[Sigil] ✓ Identity created: {self.key_id}")
+            print(f"[Sigil]   Private key: {priv_path}")
+            print(f"[Sigil]   Public key:  {pub_path}")
+            print(f"[Sigil]   (Keys stored unencrypted like SSH keys)")
         return self.key_id
 
     @property
@@ -282,14 +282,14 @@ class SignatureManager:
     High-level API for creating and managing signature files.
     """
 
-    def __init__(self, identity: Optional[BasiliskIdentity] = None):
+    def __init__(self, identity: Optional[SigilIdentity] = None):
         """
         Initialize signature manager.
 
         Args:
-            identity: BasiliskIdentity instance (default: use ~/.basilisk/identity.pem)
+            identity: SigilIdentity instance (default: use ~/.sigil/identity.pem)
         """
-        self.identity = identity or BasiliskIdentity()
+        self.identity = identity or SigilIdentity()
 
     def create_signature_file(
         self,
@@ -344,7 +344,7 @@ class SignatureManager:
             with signature_path.open('r') as f:
                 signature_doc = json.load(f)
 
-            is_valid, error = BasiliskIdentity.verify_signature(signature_doc)
+            is_valid, error = SigilIdentity.verify_signature(signature_doc)
 
             info = {
                 "key_id": signature_doc.get("proof", {}).get("key_id"),
@@ -364,27 +364,27 @@ class SignatureManager:
 # Convenience functions for CLI usage
 
 def create_identity(key_path: Optional[Path] = None, overwrite: bool = False) -> str:
-    """Create new Basilisk identity. Returns key_id."""
-    identity = BasiliskIdentity(key_path)
+    """Create new Sigil identity. Returns key_id."""
+    identity = SigilIdentity(key_path)
     identity.generate(overwrite=overwrite)
     return identity.key_id
 
 
 def sign_hash(hash_hex: str, metadata: Optional[Dict] = None, key_path: Optional[Path] = None) -> Dict:
     """Sign a hash with the default or specified identity."""
-    identity = BasiliskIdentity(key_path)
+    identity = SigilIdentity(key_path)
     identity.ensure_identity()
     return identity.sign_hash(hash_hex, metadata)
 
 
 def verify_signature(signature_doc: Dict) -> Tuple[bool, Optional[str]]:
     """Verify a signature document. Returns (is_valid, error_message)."""
-    return BasiliskIdentity.verify_signature(signature_doc)
+    return SigilIdentity.verify_signature(signature_doc)
 
 
 def get_key_id(key_path: Optional[Path] = None) -> str:
     """Get the key ID of the current identity."""
-    identity = BasiliskIdentity(key_path)
+    identity = SigilIdentity(key_path)
     if not identity.private_key:
         raise ValueError("No identity found. Generate one with create_identity() first.")
     return identity.key_id

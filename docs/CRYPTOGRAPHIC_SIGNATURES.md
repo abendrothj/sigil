@@ -1,8 +1,8 @@
-# Basilisk Cryptographic Signatures
+# Sigil Cryptographic Signatures
 
 ## Overview
 
-Basilisk cryptographic signatures create a **chain of custody** for video content without relying on blockchain. This system proves ownership of perceptual hashes through Ed25519 digital signatures and Web2 timestamp oracles.
+Sigil cryptographic signatures create a **chain of custody** for video content without relying on blockchain. This system proves ownership of perceptual hashes through Ed25519 digital signatures and Web2 timestamp oracles.
 
 ## The Problem This Solves
 
@@ -22,7 +22,7 @@ Basilisk cryptographic signatures create a **chain of custody** for video conten
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                  BASILISK DEFENSE SYSTEM                     │
+│                  SIGIL DEFENSE SYSTEM                        │
 ├─────────────────────────────────────────────────────────────┤
 │                                                              │
 │  1. PERCEPTUAL HASH (Public Truth)                          │
@@ -61,11 +61,11 @@ python -m cli.identity generate
 ✅ Identity Created Successfully
 
 🔐 Key ID: SHA256:Abc123XyZ...
-📁 Private key: /Users/you/.basilisk/identity.pem
-📄 Public key:  /Users/you/.basilisk/identity.pub
+📁 Private key: /Users/you/.sigil/identity.pem
+📄 Public key:  /Users/you/.sigil/identity.pub
 
 ⚠️  Security Notice:
-   Your private key is stored unencrypted at ~/.basilisk/identity.pem
+   Your private key is stored unencrypted at ~/.sigil/identity.pem
    This is intentional (like SSH keys) for ease of use.
 ```
 
@@ -92,7 +92,7 @@ Computing 256-bit perceptual hash...
    Format: binary
 
 🔐 Creating cryptographic signature...
-[Basilisk] ✓ Identity created: SHA256:Abc123...
+[Sigil] ✓ Identity created: SHA256:Abc123...
 ✅ Signature saved to: my_video.mp4.signature.json
    Key ID: SHA256:Abc123...
    Algorithm: Ed25519
@@ -354,7 +354,7 @@ curl -X POST http://localhost:5000/api/verify \
 ### What This Does NOT Protect Against
 
 ❌ **Private key compromise**
-- If your `~/.basilisk/identity.pem` is stolen, attacker can sign as you
+- If your `~/.sigil/identity.pem` is stolen, attacker can sign as you
 - Mitigation: Generate new identity, re-sign all content
 - Note: Like SSH keys, this is an acceptable risk for this use case
 
@@ -469,11 +469,11 @@ python -m cli.identity generate
 - Ensure you're using the correct public key
 - Verify JSON format is valid
 
-### "Permission denied: ~/.basilisk/identity.pem"
+### "Permission denied: ~/.sigil/identity.pem"
 
 ```bash
 # Fix permissions
-chmod 600 ~/.basilisk/identity.pem
+chmod 600 ~/.sigil/identity.pem
 ```
 
 ---
@@ -519,19 +519,19 @@ chmod 600 ~/.basilisk/identity.pem
 ## Comparison to Other Systems
 
 ### vs. PGP/GPG
-- **Basilisk:** Video-specific, Ed25519, simple UX
+- **Sigil:** Video-specific, Ed25519, simple UX
 - **PGP:** General-purpose, RSA, complex UX
-- **Basilisk wins on:** Simplicity, speed, modern crypto
+- **Sigil wins on:** Simplicity, speed, modern crypto
 
 ### vs. Blockchain NFTs
-- **Basilisk:** Free, Web2 timestamps, court-friendly
+- **Sigil:** Free, Web2 timestamps, court-friendly
 - **NFT:** Expensive, blockchain timestamps, technical barrier
-- **Basilisk wins on:** Cost, legal recognition, UX
+- **Sigil wins on:** Cost, legal recognition, UX
 
 ### vs. C2PA (Adobe Content Authenticity)
-- **Basilisk:** Perceptual hash (survives re-encoding)
+- **Sigil:** Perceptual hash (survives re-encoding)
 - **C2PA:** Embedded metadata (lost on re-encoding)
-- **Basilisk wins on:** Robustness against compression
+- **Sigil wins on:** Robustness against compression
 
 ---
 
@@ -558,6 +558,6 @@ chmod 600 ~/.basilisk/identity.pem
 
 **License:** MIT
 
-**Author:** Basilisk Project
+**Author:** Sigil Project
 
-**Contact:** See [GitHub Issues](https://github.com/yourname/basilisk/issues)
+**Contact:** See [GitHub Issues](https://github.com/yourname/sigil/issues)

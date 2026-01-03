@@ -1,1 +1,1 @@
-# Test suite for Project Basilisk
+# Test suite for Project Sigil

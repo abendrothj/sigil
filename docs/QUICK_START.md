@@ -1,8 +1,8 @@
-# Basilisk Quick Start Guide
+# Sigil Quick Start Guide
 
-## What is Basilisk?
+## What is Sigil?
 
-Basilisk is a **perceptual video hash tracking system with cryptographic signatures** that creates a complete "chain of custody" for your video content.
+Sigil is a **perceptual video hash tracking system with cryptographic signatures** that creates a complete "chain of custody" for your video content.
 
 ### The Three-Part Defense System
 
@@ -29,11 +29,11 @@ Basilisk is a **perceptual video hash tracking system with cryptographic signatu
 
 ```bash
 # Clone repository
-git clone https://github.com/yourname/basilisk.git
-cd basilisk
+git clone https://github.com/yourname/sigil.git
+cd sigil
 
 # Install dependencies
-pip install -r requirements.txt
+pip3 install -r requirements.txt
 
 # Verify installation
 python -m cli.identity show
@@ -72,8 +72,8 @@ Computing 256-bit perceptual hash...
 ✅ Hash saved to: my_documentary_hash.txt
 
 🔐 Creating cryptographic signature...
-[Basilisk] Generating new Ed25519 identity...
-[Basilisk] ✓ Identity created: SHA256:Abc123XyZ...
+[Sigil] Generating new Ed25519 identity...
+[Sigil] ✓ Identity created: SHA256:Abc123XyZ...
 
 ✅ Signature saved to: my_documentary.mp4.signature.json
    Key ID: SHA256:Abc123XyZ...
@@ -88,7 +88,7 @@ Computing 256-bit perceptual hash...
 **Files created:**
 - `my_documentary_hash.txt` - The perceptual hash
 - `my_documentary.mp4.signature.json` - The cryptographic signature
-- `~/.basilisk/identity.pem` - Your private signing key (auto-generated)
+- `~/.sigil/identity.pem` - Your private signing key (auto-generated)
 
 **Use case:** Content creators protecting original work before distribution
 
@@ -132,7 +132,7 @@ Tweet this:
 📊 Hash: a3f2b1c4d5e6f7a8b9c0d1e2f3a4b5c6...
 🔐 Key ID: SHA256:Abc123XyZ...
 
-Verifiable via Basilisk
+Verifiable via Sigil
 #ContentOwnership #DMCA
 ```
 
@@ -349,7 +349,7 @@ curl http://localhost:5000/api/identity
 
 ### Q: Is this like blockchain/NFTs?
 
-**A:** No. Basilisk uses Web2 platforms (Twitter, GitHub) as timestamp oracles because:
+**A:** No. Sigil uses Web2 platforms (Twitter, GitHub) as timestamp oracles because:
 - Courts understand Twitter timestamps
 - No gas fees
 - No wallet complexity
@@ -381,7 +381,7 @@ You'd need to fundamentally change the visual content to fool it.
 
 ## Comparison to Other Systems
 
-| Feature | Basilisk | C2PA (Adobe) | Blockchain NFT |
+| Feature | Sigil | C2PA (Adobe) | Blockchain NFT |
 |---------|----------|--------------|----------------|
 | **Survives re-encoding** | ✅ Yes (perceptual) | ❌ No (metadata lost) | ❌ No (exact hash) |
 | **Free to use** | ✅ Yes | ⚠️ Partial | ❌ Gas fees |
@@ -394,7 +394,7 @@ You'd need to fundamentally change the visual content to fool it.
 ## Architecture Overview
 
 ```
-basilisk/
+sigil/
 ├── core/
 │   ├── perceptual_hash.py          # Perceptual hash extraction
 │   ├── hash_database.py            # SQLite storage
@@ -437,20 +437,20 @@ basilisk/
 
 ## Security Guarantees
 
-### What Basilisk Proves:
+### What Sigil Proves:
 
 ✅ You possessed a specific hash at the time you signed it
 ✅ The hash corresponds to specific visual content
 ✅ The signature was posted publicly at a specific time
 ✅ The timestamp is tamper-proof (multiple oracles)
 
-### What Basilisk Does NOT Prove:
+### What Sigil Does NOT Prove:
 
 ❌ Legal ownership of copyright (consult attorney)
 ❌ That you created the original content (requires witness testimony)
 ❌ That the content is original (requires prior art search)
 
-**Basilisk shifts the burden of proof, but doesn't replace legal process.**
+**Sigil shifts the burden of proof, but doesn't replace legal process.**
 
 ---
 
@@ -460,15 +460,15 @@ basilisk/
 2. **Learn anchoring:** [ANCHORING_GUIDE.md](./ANCHORING_GUIDE.md)
 3. **Run tests:** `python3 tests/test_crypto_signatures.py`
 4. **Try the demo:** Extract and sign a test video
-5. **Integrate into workflow:** Add to your content creation pipeline
+5. **Integrate into workflow:** Add to your content creation pip3eline
 
 ---
 
 ## Support
 
-- **Issues:** [GitHub Issues](https://github.com/yourname/basilisk/issues)
-- **Discussions:** [GitHub Discussions](https://github.com/yourname/basilisk/discussions)
-- **Email:** support@basilisk-project.org
+- **Issues:** [GitHub Issues](https://github.com/yourname/sigil/issues)
+- **Discussions:** [GitHub Discussions](https://github.com/yourname/sigil/discussions)
+- **Email:** support@sigil-project.org
 
 ---
 

@@ -9,7 +9,7 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        basilisk: {
+        sigil: {
           50: '#f0fdf4',
           100: '#dcfce7',
           200: '#bbf7d0',

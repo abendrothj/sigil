@@ -3,10 +3,10 @@ message: "If you use this software, please cite it as below."
 authors:
 - family-names: "Abendroth"
   given-names: "Jake"
-title: "Basilisk: Compression-Robust Perceptual Hash Tracking for Video Provenance"
+title: "Sigil: Compression-Robust Perceptual Hash Tracking for Video Provenance"
 version: 1.0.0
 date-released: 2025-12-28
-url: "https://github.com/abendrothj/basilisk"
+url: "https://github.com/abendrothj/sigil"
 license: "MIT"
 keywords:
   - "video-forensics"

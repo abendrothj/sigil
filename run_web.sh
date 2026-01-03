@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "🌐 Starting Basilisk Web UI..."
+echo "🌐 Starting Sigil Web UI..."
 echo ""
 echo "Make sure the API server is running on port 5000"
 echo "Run ./run_api.sh in another terminal"

@@ -1,5 +1,5 @@
 """
-Unit tests for Basilisk cryptographic signatures
+Unit tests for Sigil cryptographic signatures
 
 Tests cover:
 - Identity generation and loading
@@ -20,7 +20,7 @@ import sys
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from core.crypto_signatures import (
-    BasiliskIdentity,
+    SigilIdentity,
     SignatureManager,
     create_identity,
     sign_hash,
@@ -29,8 +29,8 @@ from core.crypto_signatures import (
 )
 
 
-class TestBasiliskIdentity(unittest.TestCase):
-    """Test cases for BasiliskIdentity class"""
+class TestSigilIdentity(unittest.TestCase):
+    """Test cases for SigilIdentity class"""
 
     def setUp(self):
         """Create temporary directory for test keys"""
@@ -43,7 +43,7 @@ class TestBasiliskIdentity(unittest.TestCase):
 
     def test_identity_generation(self):
         """Test generating a new Ed25519 identity"""
-        identity = BasiliskIdentity(self.test_key_path)
+        identity = SigilIdentity(self.test_key_path)
         priv_path, pub_path = identity.generate()
 
         # Check files were created
@@ -60,12 +60,12 @@ class TestBasiliskIdentity(unittest.TestCase):
     def test_identity_loading(self):
         """Test loading an existing identity"""
         # Generate identity
-        identity1 = BasiliskIdentity(self.test_key_path)
+        identity1 = SigilIdentity(self.test_key_path)
         identity1.generate()
         key_id1 = identity1.key_id
 
         # Load identity in new instance
-        identity2 = BasiliskIdentity(self.test_key_path)
+        identity2 = SigilIdentity(self.test_key_path)
         key_id2 = identity2.key_id
 
         # Key IDs should match
@@ -73,7 +73,7 @@ class TestBasiliskIdentity(unittest.TestCase):
 
     def test_key_id_format(self):
         """Test key ID fingerprint format"""
-        identity = BasiliskIdentity(self.test_key_path)
+        identity = SigilIdentity(self.test_key_path)
         identity.generate()
 
         key_id = identity.key_id
@@ -87,7 +87,7 @@ class TestBasiliskIdentity(unittest.TestCase):
 
     def test_sign_hash_valid(self):
         """Test signing a valid hash"""
-        identity = BasiliskIdentity(self.test_key_path)
+        identity = SigilIdentity(self.test_key_path)
         identity.generate()
 
         # Test hash (64 hex chars)
@@ -114,7 +114,7 @@ class TestBasiliskIdentity(unittest.TestCase):
 
     def test_sign_hash_invalid_length(self):
         """Test signing with invalid hash length"""
-        identity = BasiliskIdentity(self.test_key_path)
+        identity = SigilIdentity(self.test_key_path)
         identity.generate()
 
         # Too short
@@ -127,7 +127,7 @@ class TestBasiliskIdentity(unittest.TestCase):
 
     def test_sign_without_identity(self):
         """Test signing without generating identity first"""
-        identity = BasiliskIdentity(self.test_key_path)
+        identity = SigilIdentity(self.test_key_path)
 
         test_hash = "a" * 64
 
@@ -136,21 +136,21 @@ class TestBasiliskIdentity(unittest.TestCase):
 
     def test_verify_signature_valid(self):
         """Test verifying a valid signature"""
-        identity = BasiliskIdentity(self.test_key_path)
+        identity = SigilIdentity(self.test_key_path)
         identity.generate()
 
         test_hash = "a" * 64
         sig_doc = identity.sign_hash(test_hash)
 
         # Verify
-        is_valid, error = BasiliskIdentity.verify_signature(sig_doc)
+        is_valid, error = SigilIdentity.verify_signature(sig_doc)
 
         self.assertTrue(is_valid)
         self.assertIsNone(error)
 
     def test_verify_signature_tampered(self):
         """Test verifying a tampered signature"""
-        identity = BasiliskIdentity(self.test_key_path)
+        identity = SigilIdentity(self.test_key_path)
         identity.generate()
 
         test_hash = "a" * 64
@@ -160,17 +160,17 @@ class TestBasiliskIdentity(unittest.TestCase):
         sig_doc["claim"]["hash_hex"] = "b" * 64
 
         # Verify should fail
-        is_valid, error = BasiliskIdentity.verify_signature(sig_doc)
+        is_valid, error = SigilIdentity.verify_signature(sig_doc)
 
         self.assertFalse(is_valid)
         self.assertIsNotNone(error)
 
     def test_verify_signature_wrong_key(self):
         """Test verifying with wrong public key"""
-        identity1 = BasiliskIdentity(self.test_key_path)
+        identity1 = SigilIdentity(self.test_key_path)
         identity1.generate()
 
-        identity2 = BasiliskIdentity(self.test_dir / "other_key.pem")
+        identity2 = SigilIdentity(self.test_dir / "other_key.pem")
         identity2.generate()
 
         # Sign with identity1
@@ -181,14 +181,14 @@ class TestBasiliskIdentity(unittest.TestCase):
         sig_doc["proof"]["public_key"] = identity2.export_public_key().split('\n')[1]
 
         # Verify should fail
-        is_valid, error = BasiliskIdentity.verify_signature(sig_doc)
+        is_valid, error = SigilIdentity.verify_signature(sig_doc)
 
         self.assertFalse(is_valid)
         self.assertIsNotNone(error)
 
     def test_export_public_key(self):
         """Test exporting public key in PEM format"""
-        identity = BasiliskIdentity(self.test_key_path)
+        identity = SigilIdentity(self.test_key_path)
         identity.generate()
 
         public_pem = identity.export_public_key()
@@ -199,7 +199,7 @@ class TestBasiliskIdentity(unittest.TestCase):
 
     def test_overwrite_protection(self):
         """Test that overwrite=False prevents key replacement"""
-        identity = BasiliskIdentity(self.test_key_path)
+        identity = SigilIdentity(self.test_key_path)
         identity.generate()
 
         # Try to generate again without overwrite
@@ -208,7 +208,7 @@ class TestBasiliskIdentity(unittest.TestCase):
 
     def test_overwrite_allowed(self):
         """Test that overwrite=True allows key replacement"""
-        identity = BasiliskIdentity(self.test_key_path)
+        identity = SigilIdentity(self.test_key_path)
         key_id1 = identity.generate()[0]
 
         # Generate again with overwrite
@@ -217,7 +217,7 @@ class TestBasiliskIdentity(unittest.TestCase):
         # Key IDs should be different (new key generated)
         self.assertEqual(key_id1, key_id2)  # Paths are the same
         # But the key ID will be different
-        identity_new = BasiliskIdentity(self.test_key_path)
+        identity_new = SigilIdentity(self.test_key_path)
         # (We can't easily compare key IDs here without re-loading)
 
 
@@ -236,7 +236,7 @@ class TestSignatureManager(unittest.TestCase):
 
     def test_create_signature_file(self):
         """Test creating a signature file"""
-        identity = BasiliskIdentity(self.test_key_path)
+        identity = SigilIdentity(self.test_key_path)
         identity.generate()
 
         sig_manager = SignatureManager(identity)
@@ -260,7 +260,7 @@ class TestSignatureManager(unittest.TestCase):
 
     def test_verify_signature_file_valid(self):
         """Test verifying a valid signature file"""
-        identity = BasiliskIdentity(self.test_key_path)
+        identity = SigilIdentity(self.test_key_path)
         identity.generate()
 
         sig_manager = SignatureManager(identity)
@@ -280,7 +280,7 @@ class TestSignatureManager(unittest.TestCase):
 
     def test_verify_signature_file_tampered(self):
         """Test verifying a tampered signature file"""
-        identity = BasiliskIdentity(self.test_key_path)
+        identity = SigilIdentity(self.test_key_path)
         identity.generate()
 
         sig_manager = SignatureManager(identity)
@@ -401,7 +401,7 @@ class TestEdgeCases(unittest.TestCase):
             }
         }
 
-        is_valid, error = BasiliskIdentity.verify_signature(bad_sig)
+        is_valid, error = SigilIdentity.verify_signature(bad_sig)
 
         self.assertFalse(is_valid)
         self.assertIsNotNone(error)
@@ -414,14 +414,14 @@ class TestEdgeCases(unittest.TestCase):
             }
         }
 
-        is_valid, error = BasiliskIdentity.verify_signature(bad_sig)
+        is_valid, error = SigilIdentity.verify_signature(bad_sig)
 
         self.assertFalse(is_valid)
         self.assertIsNotNone(error)
 
     def test_empty_metadata(self):
         """Test signing with empty metadata"""
-        identity = BasiliskIdentity(self.test_dir / "key.pem")
+        identity = SigilIdentity(self.test_dir / "key.pem")
         identity.generate()
 
         test_hash = "a" * 64
@@ -432,7 +432,7 @@ class TestEdgeCases(unittest.TestCase):
 
     def test_additional_metadata_preserved(self):
         """Test that additional metadata is preserved"""
-        identity = BasiliskIdentity(self.test_dir / "key.pem")
+        identity = SigilIdentity(self.test_dir / "key.pem")
         identity.generate()
 
         test_hash = "a" * 64
@@ -447,7 +447,7 @@ class TestEdgeCases(unittest.TestCase):
         self.assertEqual(sig_doc["claim"]["metadata"], metadata)
 
         # Verify still works
-        is_valid, error = BasiliskIdentity.verify_signature(sig_doc)
+        is_valid, error = SigilIdentity.verify_signature(sig_doc)
         self.assertTrue(is_valid)
 
 
@@ -465,7 +465,7 @@ class TestSignaturePersistence(unittest.TestCase):
 
     def test_signature_survives_serialization(self):
         """Test that signature remains valid after JSON serialization"""
-        identity = BasiliskIdentity(self.key_path)
+        identity = SigilIdentity(self.key_path)
         identity.generate()
 
         test_hash = "a" * 64
@@ -476,21 +476,21 @@ class TestSignaturePersistence(unittest.TestCase):
         sig_doc_reloaded = json.loads(json_str)
 
         # Verify reloaded signature
-        is_valid, error = BasiliskIdentity.verify_signature(sig_doc_reloaded)
+        is_valid, error = SigilIdentity.verify_signature(sig_doc_reloaded)
 
         self.assertTrue(is_valid)
         self.assertIsNone(error)
 
     def test_signature_with_different_identity_instance(self):
-        """Test verifying with a different BasiliskIdentity instance"""
-        identity1 = BasiliskIdentity(self.key_path)
+        """Test verifying with a different SigilIdentity instance"""
+        identity1 = SigilIdentity(self.key_path)
         identity1.generate()
 
         test_hash = "a" * 64
         sig_doc = identity1.sign_hash(test_hash)
 
         # Verify with static method (no identity instance)
-        is_valid, error = BasiliskIdentity.verify_signature(sig_doc)
+        is_valid, error = SigilIdentity.verify_signature(sig_doc)
 
         self.assertTrue(is_valid)
         self.assertIsNone(error)

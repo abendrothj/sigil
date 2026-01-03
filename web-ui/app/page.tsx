@@ -148,7 +148,7 @@ export default function Home() {
       <header className="bg-black/30 backdrop-blur-sm border-b border-green-500/20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <h1 className="text-4xl font-bold text-green-400">
-            🐍 Basilisk: Dual-Layer Defense
+            ✨ Sigil: Dual-Layer Defense
           </h1>
           <p className="mt-2 text-gray-300">
             <strong>Scrapers can't win.</strong> HD → Model breaks. SD → We track you.
@@ -318,7 +318,7 @@ export default function Home() {
                       Poisoning {mode === 'video' ? 'Video' : mode === 'batch' ? 'Images' : 'Image'}...
                     </span>
                   ) : (
-                    `🐍 Poison ${mode === 'video' ? 'Video' : mode === 'batch' ? 'Images' : 'Image'}`
+                    `✨ Poison ${mode === 'video' ? 'Video' : mode === 'batch' ? 'Images' : 'Image'}`
                   )}
                 </button>
               </div>

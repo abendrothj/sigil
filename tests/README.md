@@ -1,6 +1,6 @@
 # Test Suite Documentation
 
-Comprehensive test suite for Project Basilisk covering all core functionality.
+Comprehensive test suite for Project Sigil covering all core functionality.
 
 ## Quick Start
 
@@ -349,7 +349,7 @@ pytest tests/ -m "not slow"
 ```bash
 # Clean pytest cache
 rm -rf .pytest_cache
-rm -rf /tmp/basilisk
+rm -rf /tmp/sigil
 ```
 
 ---
@@ -485,5 +485,5 @@ When adding new features:
 ---
 
 For questions or issues with tests, see:
-- [GitHub Issues](https://github.com/abendrothj/basilisk/issues)
+- [GitHub Issues](https://github.com/abendrothj/sigil/issues)
 - [CONTRIBUTING.md](../CONTRIBUTING.md)

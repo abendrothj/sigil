@@ -5,7 +5,7 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Project Basilisk - AI Data Protection",
+  title: "Sigil - AI Data Protection",
   description: "Protect your creative work from unauthorized AI training with radioactive data marking",
 };
 

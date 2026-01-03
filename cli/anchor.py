@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Anchor Basilisk signatures to Web2 platforms for timestamp proof
+Anchor Sigil signatures to Web2 platforms for timestamp proof
 
 This creates a "chain of custody" by posting signatures to publicly-verifiable
 platforms like Twitter and GitHub. These platforms serve as timestamp oracles
@@ -211,7 +211,7 @@ def cmd_list(args):
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Anchor Basilisk signatures to Web2 platforms for timestamp proof",
+        description="Anchor Sigil signatures to Web2 platforms for timestamp proof",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Why Anchoring?

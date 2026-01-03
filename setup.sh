@@ -1,7 +1,7 @@
 #!/bin/bash
 
 echo "=================================================="
-echo "🐍 Project Basilisk - Setup Script"
+echo "✨ Project Sigil - Setup Script"
 echo "=================================================="
 echo ""
 
@@ -50,8 +50,8 @@ source venv/bin/activate
 echo ""
 echo "Installing poison-core dependencies..."
 cd poison-core
-pip install --upgrade pip > /dev/null 2>&1
-pip install -r requirements.txt
+pip3 install --upgrade pip3 > /dev/null 2>&1
+pip3 install -r requirements.txt
 if [ $? -eq 0 ]; then
     echo "✅ poison-core dependencies installed"
 else
@@ -64,7 +64,7 @@ cd ..
 echo ""
 echo "Installing API server dependencies..."
 cd api
-pip install -r requirements.txt
+pip3 install -r requirements.txt
 if [ $? -eq 0 ]; then
     echo "✅ API dependencies installed"
 else

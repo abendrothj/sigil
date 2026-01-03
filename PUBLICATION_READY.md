@@ -7,7 +7,7 @@
 
 ## Summary
 
-Basilisk is now a clean, professional, production-ready project providing a **complete chain of custody system** combining compression-robust perceptual hashing with cryptographic signatures for AI dataset accountability. The system includes academic-grade technical documentation and production-ready legal frameworks.
+Sigil is now a clean, professional, production-ready project providing a **complete chain of custody system** combining compression-robust perceptual hashing with cryptographic signatures for AI dataset accountability. The system includes academic-grade technical documentation and production-ready legal frameworks.
 
 ---
 
@@ -15,12 +15,12 @@ Basilisk is now a clean, professional, production-ready project providing a **co
 
 ### Primary Paper
 
-**Title:** "Basilisk: Compression-Robust Perceptual Hash Tracking for Video Provenance"
+**Title:** "Sigil: Compression-Robust Perceptual Hash Tracking for Video Provenance"
 
 **Main Document:** [docs/Perceptual_Hash_Whitepaper.md](docs/Perceptual_Hash_Whitepaper.md)
 
 **Abstract:**
-We present Basilisk, an open-source compression-robust perceptual hash system for video fingerprinting and forensic tracking. By extracting perceptual features (Canny edges, Gabor textures, Laplacian saliency, RGB histograms) and projecting to a 256-bit hash via random projection, we achieve 3-10 bit drift at extreme compression levels (CRF 28-40), well under the 30-bit detection threshold (11.7%). Empirical validation demonstrates stability across 6 major platforms (YouTube, TikTok, Facebook, Instagram, Vimeo, Twitter).
+We present Sigil, an open-source compression-robust perceptual hash system for video fingerprinting and forensic tracking. By extracting perceptual features (Canny edges, Gabor textures, Laplacian saliency, RGB histograms) and projecting to a 256-bit hash via random projection, we achieve 3-10 bit drift at extreme compression levels (CRF 28-40), well under the 30-bit detection threshold (11.7%). Empirical validation demonstrates stability across 6 major platforms (YouTube, TikTok, Facebook, Instagram, Vimeo, Twitter).
 
 **Contributions:**
 1. First compression-robust video fingerprinting system (CRF 18-40)
@@ -106,7 +106,7 @@ We present Basilisk, an open-source compression-robust perceptual hash system fo
 
 **Open Source:** MIT Licensed
 
-**GitHub:** github.com/abendrothj/basilisk
+**GitHub:** github.com/abendrothj/sigil
 
 **Key Implementation:**
 - `core/perceptual_hash.py` - Main algorithm (150 lines)
@@ -169,13 +169,13 @@ python3 -m cli.compare video_original.mp4 video_compressed.mp4
 
 ### Interactive Demo
 
-**Jupyter Notebook:** [notebooks/Basilisk_Demo.ipynb](notebooks/Basilisk_Demo.ipynb)
+**Jupyter Notebook:** [notebooks/Sigil_Demo.ipynb](notebooks/Sigil_Demo.ipynb)
 - Perceptual hash extraction demo
 - Compression robustness testing
 - Feature visualization
 - Platform coverage validation
 
-**Google Colab:** [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/abendrothj/basilisk/blob/main/notebooks/Basilisk_Demo.ipynb)
+**Google Colab:** [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/abendrothj/sigil/blob/main/notebooks/Sigil_Demo.ipynb)
 
 ### Docker Deployment
 
@@ -328,9 +328,9 @@ docker-compose up
 
 ## Contact
 
-**GitHub:** github.com/abendrothj/basilisk
-**Issues:** github.com/abendrothj/basilisk/issues
-**Discussions:** github.com/abendrothj/basilisk/discussions
+**GitHub:** github.com/abendrothj/sigil
+**Issues:** github.com/abendrothj/sigil/issues
+**Discussions:** github.com/abendrothj/sigil/discussions
 
 ---
 

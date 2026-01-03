@@ -1,4 +1,4 @@
-# Dockerfile for Basilisk API Server
+# Dockerfile for Sigil API Server
 FROM python:3.10-slim
 
 WORKDIR /app
@@ -15,7 +15,7 @@ RUN apt-get update && apt-get install -y \
 COPY api/requirements.txt /app/api/
 
 # Install Python dependencies
-RUN pip install --no-cache-dir \
+RUN pip3 install --no-cache-dir \
     numpy \
     opencv-python \
     scikit-image \
@@ -26,7 +26,7 @@ RUN pip install --no-cache-dir \
     torchvision --extra-index-url https://download.pytorch.org/whl/cpu
 
 # Install API requirements
-RUN pip install --no-cache-dir -r /app/api/requirements.txt
+RUN pip3 install --no-cache-dir -r /app/api/requirements.txt
 
 # Copy source code
 COPY core/ /app/core/
@@ -38,7 +38,7 @@ COPY experimental/ /app/experimental/
 RUN mkdir -p /data
 
 # Create temp directory for processing
-RUN mkdir -p /tmp/basilisk
+RUN mkdir -p /tmp/sigil
 
 # Expose API port
 EXPOSE 5001

@@ -1,4 +1,4 @@
-# 🐍 Basilisk
+# ✨ Sigil
 
 > **First open-source perceptual hash system with cryptographic signatures for AI dataset accountability**
 
@@ -9,7 +9,7 @@
 [![Hash Drift: 8.7 bits](https://img.shields.io/badge/Mean%20Drift-8.7%20bits%20(3.4%25)-success)](docs/Perceptual_Hash_Whitepaper.md)
 [![35 Tests Passing](https://img.shields.io/badge/Tests-35%2F35%20Passing-success)](tests/)
 [![Production Ready](https://img.shields.io/badge/Status-Production%20Ready-success)](#current-status)
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/abendrothj/basilisk/blob/main/notebooks/Basilisk_Demo.ipynb)
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/abendrothj/sigil/blob/main/notebooks/Sigil_Demo.ipynb)
 
 ## The Problem
 **AI companies train on scraped video without permission. Traditional watermarks fail after YouTube/TikTok compression.**
@@ -21,7 +21,7 @@
 
 ## ⚡ What Makes This Different
 
-| Feature | Basilisk | C2PA (Adobe) | Blockchain NFT | Traditional Watermark |
+| Feature | Sigil | C2PA (Adobe) | Blockchain NFT | Traditional Watermark |
 |---------|----------|--------------|----------------|----------------------|
 | **Survives re-encoding** | ✅ 96.6% (CRF 28) | ❌ Metadata stripped | ❌ Exact hash fails | ❌ Destroyed |
 | **Legal timestamp proof** | ✅ Twitter/GitHub | ⚠️ Proprietary | ❌ No legal precedent | N/A |
@@ -37,8 +37,8 @@
 
 ```bash
 # 1. Clone and setup
-git clone https://github.com/abendrothj/basilisk.git
-cd basilisk && ./setup.sh && source venv/bin/activate
+git clone https://github.com/abendrothj/sigil.git
+cd sigil && ./setup.sh && source venv/bin/activate
 
 # 2. Extract hash + create cryptographic signature
 python -m cli.extract your_video.mp4 --sign --verbose
@@ -62,8 +62,8 @@ python -m cli.anchor your_video.mp4.signature.json \
 ### Docker (Full Stack - Web UI + API)
 
 ```bash
-git clone https://github.com/abendrothj/basilisk.git
-cd basilisk
+git clone https://github.com/abendrothj/sigil.git
+cd sigil
 docker-compose up
 ```
 
@@ -83,7 +83,7 @@ Traditional watermarks don't survive compression. Video platforms use aggressive
 
 ## 💡 The Solution: Complete Chain of Custody
 
-Basilisk provides a **three-part defense system**:
+Sigil provides a **three-part defense system**:
 
 1. **Perceptual Hash**: Compression-robust 256-bit fingerprint that survives platform re-encoding
 2. **Cryptographic Signatures**: Ed25519 digital signatures proving hash ownership at specific times
@@ -190,7 +190,7 @@ See [VERIFICATION_PROOF.md](VERIFICATION_PROOF.md) for full methodology and [doc
 1. **First open-source perceptual hash for AI dataset provenance**
    - C2PA (Adobe) uses exact hashes that fail on re-encoding
    - Blockchain NFTs use cryptographic hashes that fail on compression
-   - Basilisk combines perceptual matching + cryptographic signatures
+   - Sigil combines perceptual matching + cryptographic signatures
 
 2. **Empirical validation on standard benchmark (UCF-101)**
    - 13,320 videos in dataset
@@ -232,7 +232,7 @@ See [VERIFICATION_PROOF.md](VERIFICATION_PROOF.md) for full methodology and [doc
 
 ### Academic Resources
 
-- **Interactive Demo:** [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/abendrothj/basilisk/blob/main/notebooks/Basilisk_Demo.ipynb)
+- **Interactive Demo:** [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/abendrothj/sigil/blob/main/notebooks/Sigil_Demo.ipynb)
 - **Reproducibility:** Validation tests available via CLI and API
 - **Test Suite:** API and integration tests - run with `pytest tests/`
 
@@ -241,7 +241,7 @@ See [VERIFICATION_PROOF.md](VERIFICATION_PROOF.md) for full methodology and [doc
 ## 🛠️ Project Structure
 
 ```
-basilisk/
+sigil/
 ├── core/                     # Core implementation
 │   ├── perceptual_hash.py        # Compression-robust video fingerprinting
 │   ├── crypto_signatures.py      # Ed25519 cryptographic signatures (NEW)
@@ -267,7 +267,7 @@ basilisk/
 │   ├── COMPRESSION_LIMITS.md          # Compression robustness analysis
 │   └── RESEARCH.md                    # Academic references
 ├── notebooks/                # Jupyter notebooks for demos
-│   └── Basilisk_Demo.ipynb
+│   └── Sigil_Demo.ipynb
 ├── experimental/             # Archived research (deprecated)
 │   └── deprecated_dct_approach/   # Failed DCT poisoning attempts
 └── tests/                    # Test suite (27 tests passing)
@@ -553,8 +553,8 @@ See [CREDITS.md](docs/CREDITS.md) for full acknowledgments.
 
 ## 💬 Community & Support
 
-- **Issues:** [GitHub Issues](https://github.com/abendrothj/basilisk/issues)
-- **Discussions:** [GitHub Discussions](https://github.com/abendrothj/basilisk/discussions)
+- **Issues:** [GitHub Issues](https://github.com/abendrothj/sigil/issues)
+- **Discussions:** [GitHub Discussions](https://github.com/abendrothj/sigil/discussions)
 - **Research Papers:** See [docs/RESEARCH.md](docs/RESEARCH.md)
 
 ---

@@ -1,4 +1,4 @@
-# Basilisk: Compression-Robust Perceptual Hash Tracking with Cryptographic Chain of Custody for Video
+# Sigil: Compression-Robust Perceptual Hash Tracking with Cryptographic Chain of Custody for Video
 
 **Technical Whitepaper**
 
@@ -8,7 +8,7 @@
 
 ## Abstract
 
-We present Basilisk, an open-source complete chain of custody system for video content combining compression-robust perceptual hashing with Ed25519 cryptographic signatures and Web2 timestamp anchoring. Our perceptual hash extracts robust features (Canny edges, Gabor textures, Laplacian saliency, RGB histograms) and projects them to a 256-bit fingerprint that survives platform compression. Empirical validation on UCF-101 benchmark videos demonstrates 4-14 bit drift at CRF 28 (mean: 8.7 bits, 3.4%), well under the 30-bit detection threshold (11.7%). The cryptographic signature layer provides mathematically-verifiable ownership proof using Ed25519 digital signatures (256-bit security), while Web2 timestamp anchoring (Twitter, GitHub) creates legally-recognized temporal proof of possession. The complete system is validated for real-world platform compression (CRF 18-35) used by YouTube, TikTok, Facebook, and Instagram, with 27/27 unit tests passing. This work enables content creators to build forensic evidence databases with cryptographic chain of custody for legal action against unauthorized data usage, AI dataset scraping, and copyright infringement.
+We present Sigil, an open-source complete chain of custody system for video content combining compression-robust perceptual hashing with Ed25519 cryptographic signatures and Web2 timestamp anchoring. Our perceptual hash extracts robust features (Canny edges, Gabor textures, Laplacian saliency, RGB histograms) and projects them to a 256-bit fingerprint that survives platform compression. Empirical validation on UCF-101 benchmark videos demonstrates 4-14 bit drift at CRF 28 (mean: 8.7 bits, 3.4%), well under the 30-bit detection threshold (11.7%). The cryptographic signature layer provides mathematically-verifiable ownership proof using Ed25519 digital signatures (256-bit security), while Web2 timestamp anchoring (Twitter, GitHub) creates legally-recognized temporal proof of possession. The complete system is validated for real-world platform compression (CRF 18-35) used by YouTube, TikTok, Facebook, and Instagram, with 27/27 unit tests passing. This work enables content creators to build forensic evidence databases with cryptographic chain of custody for legal action against unauthorized data usage, AI dataset scraping, and copyright infringement.
 
 **Keywords:** Perceptual hashing, video fingerprinting, compression robustness, cryptographic signatures, Ed25519, chain of custody, data sovereignty, forensic tracking, content provenance, timestamp anchoring, legal evidence
 
@@ -33,7 +33,7 @@ Content creators need a method to:
 
 ### 1.2 Our Solution: Complete Chain of Custody
 
-Basilisk implements a three-part defense system for video content accountability:
+Sigil implements a three-part defense system for video content accountability:
 
 #### 1.2.1 Perceptual Hash (Public Truth)
 
@@ -654,7 +654,7 @@ evidence/
 
 **Advantages Over Traditional Methods:**
 
-| Method              | Basilisk          | C2PA (Adobe)       | Blockchain NFT    |
+| Method              | Sigil          | C2PA (Adobe)       | Blockchain NFT    |
 |---------------------|-------------------|--------------------|-------------------|
 | **Survives re-encoding** | ✅ Perceptual hash | ❌ Metadata stripped | ❌ Exact hash fails |
 | **Legal timestamp** | ✅ Twitter/GitHub | ⚠️ Proprietary     | ❌ No precedent   |
@@ -694,7 +694,7 @@ evidence/
 | pHash | 64 bits | ❌ No (near-duplicate only) | ✅ Yes | ❌ No | Production |
 | dHash | 64 bits | ❌ No | ✅ Yes | ❌ No | Production |
 | YouTube Content ID | Unknown | ✅ Yes | ✅ Yes | ✅ Yes | Proprietary |
-| **Basilisk** | 256 bits | ✅ Yes (CRF 28-35) | ✅ Yes | ⚠️ Partial | Open-source |
+| **Sigil** | 256 bits | ✅ Yes (CRF 28-35) | ✅ Yes | ⚠️ Partial | Open-source |
 
 **Unique Contribution:** First open-source system validated on UCF-101 for CRF 28-35 compression.
 
@@ -737,7 +737,7 @@ evidence/
 
 ## 8. Conclusion
 
-Basilisk provides a complete chain of custody system for video content combining compression-robust perceptual hashing with Ed25519 cryptographic signatures and Web2 timestamp anchoring. The perceptual hash layer achieves 4-14 bit drift at CRF 28 on UCF-101 benchmark (mean: 8.7 bits, 3.4%), while the cryptographic layer provides mathematically-verifiable ownership proof with court-recognized timestamps. This enables content creators to build legally-defensible forensic evidence databases for DMCA takedowns, copyright claims, and AI dataset accountability.
+Sigil provides a complete chain of custody system for video content combining compression-robust perceptual hashing with Ed25519 cryptographic signatures and Web2 timestamp anchoring. The perceptual hash layer achieves 4-14 bit drift at CRF 28 on UCF-101 benchmark (mean: 8.7 bits, 3.4%), while the cryptographic layer provides mathematically-verifiable ownership proof with court-recognized timestamps. This enables content creators to build legally-defensible forensic evidence databases for DMCA takedowns, copyright claims, and AI dataset accountability.
 
 **Key Results - Perceptual Hash:**
 
@@ -815,8 +815,8 @@ Basilisk provides a complete chain of custody system for video content combining
 
 ```bash
 # Clone repository
-git clone https://github.com/abendrothj/basilisk.git
-cd basilisk
+git clone https://github.com/abendrothj/sigil.git
+cd sigil
 
 # Create test video
 python3 experiments/make_short_test_video.py
@@ -837,11 +837,11 @@ python3 experiments/perceptual_hash.py test_crf28.mp4 30
 
 ```bash
 # Clone repository
-git clone https://github.com/abendrothj/basilisk.git
-cd basilisk
+git clone https://github.com/abendrothj/sigil.git
+cd sigil
 
 # Install dependencies
-pip install -r requirements.txt
+pip3 install -r requirements.txt
 
 # Extract hash and create signature
 python -m cli.extract test_video.mp4 --sign --verbose
@@ -876,4 +876,4 @@ python -m cli.compare test_video.mp4 compressed.mp4
 **Date:** December 29, 2025
 **Version:** 2.0 (with cryptographic signatures)
 **License:** MIT
-**Repository:** <https://github.com/abendrothj/basilisk>
+**Repository:** <https://github.com/abendrothj/sigil>

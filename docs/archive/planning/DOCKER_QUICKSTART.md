@@ -135,10 +135,10 @@ Local setup is best for:
 
 ```bash
 # Build and push
-docker build -t yourusername/basilisk-api:latest -f Dockerfile.api .
-docker build -t yourusername/basilisk-web:latest -f Dockerfile.web .
-docker push yourusername/basilisk-api:latest
-docker push yourusername/basilisk-web:latest
+docker build -t yourusername/sigil-api:latest -f Dockerfile.api .
+docker build -t yourusername/sigil-web:latest -f Dockerfile.web .
+docker push yourusername/sigil-api:latest
+docker push yourusername/sigil-web:latest
 
 # Deploy to ECS (follow AWS docs)
 ```
@@ -150,10 +150,10 @@ docker push yourusername/basilisk-web:latest
 curl -L https://fly.io/install.sh | sh
 
 # Deploy API
-flyctl launch --dockerfile Dockerfile.api --name basilisk-api
+flyctl launch --dockerfile Dockerfile.api --name sigil-api
 
 # Deploy Web
-flyctl launch --dockerfile Dockerfile.web --name basilisk-web
+flyctl launch --dockerfile Dockerfile.web --name sigil-web
 ```
 
 **Option 3: Railway**
@@ -224,7 +224,7 @@ A: Technically yes, but very slow. Use cloud GPU workers instead.
 
 ## Support
 
-- **Issues:** https://github.com/abendrothj/basilisk/issues
+- **Issues:** https://github.com/abendrothj/sigil/issues
 - **Docs:** See README.md
 - **Community:** GitHub Discussions
 

@@ -1,4 +1,4 @@
-# Basilisk Project Structure
+# Sigil Project Structure
 
 **Last Updated:** December 28, 2025
 
@@ -6,14 +6,14 @@
 
 ## Overview
 
-Basilisk is a compression-robust perceptual hash tracking system for forensic video fingerprinting. The project is organized with **production-ready code** in the main directories and **experimental research** isolated in `experimental/`.
+Sigil is a compression-robust perceptual hash tracking system for forensic video fingerprinting. The project is organized with **production-ready code** in the main directories and **experimental research** isolated in `experimental/`.
 
 ---
 
 ## Directory Structure
 
 ```
-basilisk/
+sigil/
 │
 ├── core/                          # 🎯 PRIMARY: Perceptual Hash System
 │   ├── perceptual_hash.py            # Hash extraction (Canny, Gabor, Laplacian, RGB)
@@ -62,7 +62,7 @@ basilisk/
 │   └── CREDITS.md
 │
 ├── notebooks/                     # 📓 Jupyter Notebooks
-│   └── Basilisk_Demo.ipynb           # Interactive perceptual hash demo (Colab-ready)
+│   └── Sigil_Demo.ipynb           # Interactive perceptual hash demo (Colab-ready)
 │
 ├── tests/                         # ✅ Test Suite
 │   ├── test_perceptual_hash.py       # Perceptual hash tests
@@ -76,7 +76,7 @@ basilisk/
 │
 ├── research/                      # 📖 Research Papers & References
 │
-├── venv/                          # 🐍 Python Virtual Environment (local)
+├── venv/                          # ✨ Python Virtual Environment (local)
 │
 ├── docker-compose.yml             # Docker Compose configuration
 ├── setup.sh                       # Setup script
@@ -283,7 +283,7 @@ See [RESTRUCTURE_SUMMARY.md](RESTRUCTURE_SUMMARY.md) for full migration guide.
 
 ## Summary
 
-**Basilisk is now clearly organized as:**
+**Sigil is now clearly organized as:**
 
 - **Primary:** Perceptual hash tracking system (production-ready)
 - **Experimental:** Radioactive data marking (research-only, clearly isolated)

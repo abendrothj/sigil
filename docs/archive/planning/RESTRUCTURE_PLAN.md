@@ -1,14 +1,14 @@
 # Project Restructure Plan - Perceptual Hash Focus
 
 **Date:** December 28, 2025
-**Goal:** Reposition Basilisk as a perceptual hash tracking system (primary) with radioactive marking as experimental research (isolated)
+**Goal:** Reposition Sigil as a perceptual hash tracking system (primary) with radioactive marking as experimental research (isolated)
 
 ---
 
 ## New Directory Structure
 
 ```
-basilisk/
+sigil/
 ├── core/                          # PRIMARY: Perceptual hash system
 │   ├── perceptual_hash.py            # Main hash extraction (moved from experiments/)
 │   ├── video_loader.py               # Video frame loading utilities
@@ -72,7 +72,7 @@ basilisk/
 │       └── LAYER1_ALTERNATIVES.md
 │
 ├── notebooks/                     # Jupyter notebooks
-│   ├── Basilisk_Demo.ipynb          # PRIMARY demo (perceptual hash)
+│   ├── Sigil_Demo.ipynb          # PRIMARY demo (perceptual hash)
 │   └── experimental/
 │       └── Radioactive_Research.ipynb
 │
@@ -200,29 +200,29 @@ POST /experimental/radioactive/detect
 
 ```bash
 # Extract hash from video
-basilisk extract video.mp4 --frames 60 --output hash.txt
+sigil extract video.mp4 --frames 60 --output hash.txt
 
 # Compare two videos
-basilisk compare video1.mp4 video2.mp4 --frames 60
+sigil compare video1.mp4 video2.mp4 --frames 60
 
 # Batch process directory
-basilisk batch videos/ --frames 60 --output hashes.csv
+sigil batch videos/ --frames 60 --output hashes.csv
 
 # Store hash in database
-basilisk store video.mp4 --platform youtube --video-id abc123
+sigil store video.mp4 --platform youtube --video-id abc123
 
 # Query database
-basilisk query hash.txt --threshold 30
+sigil query hash.txt --threshold 30
 
 # Database statistics
-basilisk db stats
+sigil db stats
 ```
 
 ### Moved to Experimental (Optional)
 
 ```bash
 # Experimental radioactive poisoning
-basilisk experimental poison image.jpg output.jpg
+sigil experimental poison image.jpg output.jpg
 ```
 
 ---
@@ -307,8 +307,8 @@ from experimental.radioactive.poison import RadioactiveMarker
 
 ### Extract Perceptual Hash from Video
 ```bash
-git clone https://github.com/abendrothj/basilisk.git
-cd basilisk
+git clone https://github.com/abendrothj/sigil.git
+cd sigil
 ./setup.sh
 source venv/bin/activate
 
@@ -328,7 +328,7 @@ docker-compose up
 ## Breaking Changes
 
 1. **Import paths** - All imports from `experiments/` and `poison-core/` need updating
-2. **CLI commands** - New command structure (`basilisk extract` vs `python experiments/perceptual_hash.py`)
+2. **CLI commands** - New command structure (`sigil extract` vs `python experiments/perceptual_hash.py`)
 3. **API endpoints** - New endpoint structure (`/extract_hash` vs `/poison`)
 4. **Docker paths** - Volume mounts updated for new structure
 

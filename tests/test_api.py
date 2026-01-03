@@ -67,7 +67,7 @@ class TestHealthEndpoint:
 
         data = json.loads(response.data)
         assert data['status'] == 'healthy'
-        assert data['service'] == 'basilisk-hash-api'
+        assert data['service'] == 'sigil-hash-api'
         assert 'version' in data
         assert data['feature'] == 'perceptual_hash_tracking'
 

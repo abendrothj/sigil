@@ -1,12 +1,12 @@
 # Hacker News Launch Post
 
-**Title:** Basilisk: Compression-Robust Perceptual Hash Tracking for Video (Open Source)
+**Title:** Sigil: Compression-Robust Perceptual Hash Tracking for Video (Open Source)
 
 **Post:**
 
 Hi HN,
 
-I'm releasing Basilisk, an open-source system for tracking videos across platforms using compression-robust perceptual hashing.
+I'm releasing Sigil, an open-source system for tracking videos across platforms using compression-robust perceptual hashing.
 
 **The Problem:**
 
@@ -14,7 +14,7 @@ AI companies scrape videos from YouTube, TikTok, and other platforms to train ge
 
 **The Solution:**
 
-Basilisk extracts perceptual features (Canny edges, Gabor textures, Laplacian saliency, RGB histograms) from video frames and projects them to a 256-bit hash. This hash survives platform compression because it's based on what H.264 codecs try to preserve - perceptual content.
+Sigil extracts perceptual features (Canny edges, Gabor textures, Laplacian saliency, RGB histograms) from video frames and projects them to a 256-bit hash. This hash survives platform compression because it's based on what H.264 codecs try to preserve - perceptual content.
 
 **Empirical Results:**
 
@@ -44,9 +44,9 @@ All experiments are fully reproducible. Run `python experiments/perceptual_hash.
 
 **Try it:**
 
-- GitHub: https://github.com/abendrothj/basilisk
-- Interactive Colab: https://colab.research.google.com/github/abendrothj/basilisk/blob/main/notebooks/Basilisk_Demo.ipynb
-- Technical whitepaper: https://github.com/abendrothj/basilisk/blob/main/docs/Perceptual_Hash_Whitepaper.md
+- GitHub: https://github.com/abendrothj/sigil
+- Interactive Colab: https://colab.research.google.com/github/abendrothj/sigil/blob/main/notebooks/Sigil_Demo.ipynb
+- Technical whitepaper: https://github.com/abendrothj/sigil/blob/main/docs/Perceptual_Hash_Whitepaper.md
 
 **Questions I'd Love Feedback On:**
 
@@ -69,11 +69,11 @@ Most perceptual hash libraries (pHash, ImageHash) are designed for **image simil
 - Not designed for 256-bit cryptographic fingerprints
 - No temporal aggregation across video frames
 
-Basilisk is purpose-built for surviving platform compression and generating collision-resistant forensic fingerprints.
+Sigil is purpose-built for surviving platform compression and generating collision-resistant forensic fingerprints.
 
 **Comparison to Content ID (YouTube):**
 
-YouTube's Content ID uses acoustic fingerprinting + visual analysis (proprietary). Basilisk is:
+YouTube's Content ID uses acoustic fingerprinting + visual analysis (proprietary). Sigil is:
 
 - Open source (full methodology documented)
 - Self-hosted (no dependency on platform cooperation)
@@ -85,7 +85,7 @@ YouTube's Content ID uses acoustic fingerprinting + visual analysis (proprietary
 **Follow-up Comments (anticipate common questions):**
 
 Q: "What about VideoHash or similar libraries?"
-A: VideoHash uses pHash under the hood (DCT-based), which fails at CRF 28+. We tested it - 40+ bit drift. Basilisk uses perceptual features specifically chosen for compression robustness.
+A: VideoHash uses pHash under the hood (DCT-based), which fails at CRF 28+. We tested it - 40+ bit drift. Sigil uses perceptual features specifically chosen for compression robustness.
 
 Q: "How do you prevent collisions with 256 bits?"
 A: Random projection with cryptographic seed ensures collision resistance. Birthday paradox: 2^128 operations to find collision (computationally infeasible). We're currently testing on large datasets to empirically measure false positive rate.
@@ -130,7 +130,7 @@ A: Yes. Hash + timestamp = forensic evidence of upload date. If you can prove yo
 
 **Backup Title Options:**
 
-1. "Basilisk: Track Videos Across Platforms Using Compression-Robust Perceptual Hashing"
+1. "Sigil: Track Videos Across Platforms Using Compression-Robust Perceptual Hashing"
 2. "Open-Source Perceptual Hash System for Forensic Video Tracking (3-10 bit drift at CRF 28-40)"
 3. "How to Track Videos Across YouTube/TikTok/Facebook Compression (Empirical Validation)"
 

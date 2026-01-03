@@ -64,7 +64,7 @@ def main():
     parser.add_argument(
         "--key-path",
         type=str,
-        help="Path to private key (default: ~/.basilisk/identity.pem)"
+        help="Path to private key (default: ~/.sigil/identity.pem)"
     )
     parser.add_argument(
         "--signature-output",
@@ -138,8 +138,8 @@ def main():
             # Initialize signature manager
             sig_manager = SignatureManager()
             if args.key_path:
-                from core.crypto_signatures import BasiliskIdentity
-                sig_manager.identity = BasiliskIdentity(Path(args.key_path))
+                from core.crypto_signatures import SigilIdentity
+                sig_manager.identity = SigilIdentity(Path(args.key_path))
 
             # Determine signature output path
             if args.signature_output:

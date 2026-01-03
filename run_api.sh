@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "🐍 Starting Basilisk API Server..."
+echo "✨ Starting Sigil API Server..."
 echo ""
 
 # Activate virtual environment
