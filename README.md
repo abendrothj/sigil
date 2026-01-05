@@ -338,6 +338,9 @@ python -m cli.extract video.mp4 --sign --verbose
 ```bash
 # Extract hash without signature
 python -m cli.extract video.mp4
+
+# Extract with PRIVATE seed (only you or anyone with the password can verify)
+python -m cli.extract video.mp4 --seed "my-secret-password"
 ```
 
 ### CLI - Verify Signature
@@ -397,6 +400,13 @@ curl -X POST http://localhost:5000/api/compare \
 - Anyone with access to this code can compute the same hash for any video
 - The perceptual hash itself is **reproducible** but **NOT cryptographically secure**
 - The hash is a **forensic fingerprint** - cryptographic ownership proof comes from Ed25519 signatures
+
+**NEW: Private Verifiability (--seed)**
+You can now use a custom secret seed to make your hashes private:
+```bash
+python -m cli.extract video.mp4 --seed "my-secret-password"
+```
+This ensures only you (or anyone with the password) can verify the video.
 
 **What this means:**
 

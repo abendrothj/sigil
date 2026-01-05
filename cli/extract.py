@@ -46,6 +46,11 @@ def main():
         help="Output file path (default: print to stdout)"
     )
     parser.add_argument(
+        "--seed",
+        type=str,
+        help="Custom seed for private verifiability (optional, defaults to 42)"
+    )
+    parser.add_argument(
         "--format",
         choices=["binary", "hex", "decimal"],
         default="binary",
@@ -101,7 +106,7 @@ def main():
         if args.verbose:
             print("Computing 256-bit perceptual hash...")
 
-        hash_binary = compute_perceptual_hash(features)
+        hash_binary = compute_perceptual_hash(features, seed=args.seed)
 
         # Format output
         if args.format == "binary":

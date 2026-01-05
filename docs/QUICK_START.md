@@ -54,6 +54,12 @@ python -m cli.extract my_video.mp4 --verbose
 
 **Use case:** Quick forensic tracking, no legal proof needed
 
+### Example 1a: Private Verifiability (Optional)
+```bash
+# Extract hash with a secret seed (only you or anyone with the password can verify)
+python -m cli.extract my_video.mp4 --seed "my-secret-password"
+```
+
 ---
 
 ### Example 2: Sign a Video for Legal Protection

@@ -63,39 +63,40 @@ def extract_perceptual_features(video_frames):
     return features
 
 # --- Perceptual Hash Computation ---
-def compute_perceptual_hash(features, hash_size=256):
+def compute_perceptual_hash(features, hash_size=256, seed=42):
     """
     Computes a 256-bit perceptual hash from extracted features.
-    Uses random projection and incremental mean for memory efficiency.
-
-    SECURITY WARNING: This function uses a FIXED SEED (42) for reproducibility.
-
-    Implications:
-    - Hashes are deterministic and reproducible across all installations
-    - Anyone with this code can compute the same hash for any video
-    - This is a FORENSIC FINGERPRINT, not a cryptographic signature
-    - Attackers can precompute hash collisions if they know the seed
-
-    Good for:
-    - Tracking your own videos across platforms
-    - Building forensic evidence databases
-    - Detecting unauthorized reuploads
-
-    NOT good for:
-    - Cryptographic proof of ownership
-    - Preventing determined adversaries from creating collisions
-    - Situations where hash secrecy is required
-
+    
     Args:
         features: dict of extracted features
         hash_size: output hash length (default 256)
+        seed: random seed for projection matrix (default 42)
+              If int: used directly
+              If str: hashed to generate int seed
+              If None: defaults to 42
     Returns:
         hash_bits: np.ndarray of 0/1 (length hash_size)
     """
     import time
+    import hashlib
 
-    # WARNING: Fixed seed for reproducibility - see security warning above
-    np.random.seed(42)
+    # Handle seed types
+    if seed is None:
+        seed = 42
+    
+    if isinstance(seed, str):
+        # Try to convert to int (e.g. "42") to match default behavior
+        try:
+            real_seed = int(seed)
+        except ValueError:
+            # Convert string password to integer using SHA-256
+            seed_hash = hashlib.sha256(seed.encode('utf-8')).hexdigest()
+            real_seed = int(seed_hash, 16) % (2**32)
+    else:
+        real_seed = int(seed)
+
+    # Set seed for random projection
+    np.random.seed(real_seed)
 
     first = next(iter(features.values()))
     frame_len = (
