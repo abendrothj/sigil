@@ -186,8 +186,8 @@ def cmd_list(args):
 
         print(f"📋 Anchors for: {sig_path.name}")
         print(f"   Signature: {sig_doc['claim']['hash_hex'][:16]}...")
-        print(f"   Key ID: {sig_doc['proof']['key_id']}")
-        print(f"   Signed: {sig_doc['proof']['signed_at']}")
+        print(f"   Key ID: {sig_doc['key_id']}")
+        print(f"   Signed: {sig_doc['claim'].get('timestamp', 'Unknown')}")
         print(f"\n🔗 Timestamp Anchors ({len(anchors)}):")
 
         for i, anchor in enumerate(anchors, 1):

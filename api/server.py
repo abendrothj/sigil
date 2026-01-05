@@ -32,7 +32,7 @@ except ImportError as e:
         raise
 
 app = Flask(__name__)
-CORS(app)
+_ = CORS(app)
 
 # Configuration
 app.config['MAX_CONTENT_LENGTH'] = 500 * 1024 * 1024  # 500MB max for videos
@@ -42,7 +42,14 @@ TEMP_DIR.mkdir(exist_ok=True)
 
 # Initialize database
 DB_PATH = Path(__file__).parent.parent / 'sigil_hashes.db'
-db = HashDatabase(str(DB_PATH))
+db = None
+
+def get_db():
+    """Get or initialize database connection"""
+    global db
+    if db is None:
+        db = HashDatabase(str(DB_PATH))
+    return db
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
@@ -157,7 +164,7 @@ def extract_hash():
             db_args['signed_at'] = signature_doc['proof']['signed_at']
             db_args['signature_version'] = signature_doc['version']
 
-        hash_id = db.store_hash(**db_args)
+        hash_id = get_db().store_hash(**db_args)
 
         # Clean up
         input_path.unlink(missing_ok=True)
@@ -234,7 +241,7 @@ def compare_hash():
 
         # Find matches - convert hash_str back to numpy array for query_similar
         hash_bits_for_query = np.array([int(c) for c in hash_str])
-        matches = db.query_similar(hash_bits_for_query, threshold=threshold)
+        matches = get_db().query_similar(hash_bits_for_query, threshold=threshold)
 
         # Calculate closest distance
         closest_distance = min([m['hamming_distance'] for m in matches]) if matches else 256
@@ -259,7 +266,7 @@ def compare_hash():
 def get_stats():
     """Get database statistics"""
     try:
-        stats = db.get_stats()
+        stats = get_db().get_stats()
         return jsonify({
             'success': True,
             'total_hashes': stats['total_hashes'],

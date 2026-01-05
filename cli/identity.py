@@ -40,7 +40,7 @@ def cmd_show(args):
 
         print("✅ Sigil Identity Found")
         print()
-        print(f"🔐 Key ID: {identity.key_id}")
+        print(f"🔐 Key ID: {identity.get_key_id()}")
         print(f"📁 Private key: {identity.private_key_path}")
         print(f"📄 Public key:  {identity.public_key_path}")
         print(f"🔑 Algorithm: Ed25519")
@@ -68,7 +68,10 @@ def cmd_generate(args):
         if identity.private_key_path.exists() and not args.overwrite:
             print(f"❌ Identity already exists at: {identity.private_key_path}")
             print()
-            print(f"🔐 Current Key ID: {identity.key_id}")
+            try:
+                print(f"🔐 Current Key ID: {identity.get_key_id()}")
+            except:
+                print(f"🔐 Current Key ID: (Could not load existing key)")
             print()
             print(f"💡 To replace it, use:")
             print(f"   python -m cli.identity generate --overwrite")
@@ -78,12 +81,12 @@ def cmd_generate(args):
 
         # Generate new keypair
         print("🔐 Generating new Ed25519 identity...")
-        priv_path, pub_path = identity.generate(overwrite=args.overwrite)
+        priv_path, pub_path = identity.generate_keys(force=args.overwrite)
 
         print()
         print("✅ Identity Created Successfully")
         print()
-        print(f"🔐 Key ID: {identity.key_id}")
+        print(f"🔐 Key ID: {identity.get_key_id()}")
         print(f"📁 Private key: {priv_path}")
         print(f"📄 Public key:  {pub_path}")
         print()
@@ -118,12 +121,12 @@ def cmd_export(args):
             output_path = Path(args.output)
             output_path.write_text(public_key_pem)
             print(f"✅ Public key exported to: {output_path}")
-            print(f"🔐 Key ID: {identity.key_id}")
+            print(f"🔐 Key ID: {identity.get_key_id()}")
         else:
             print(public_key_pem)
 
         if args.verbose and not args.output:
-            print(f"\n🔐 Key ID: {identity.key_id}", file=sys.stderr)
+            print(f"\n🔐 Key ID: {identity.get_key_id()}", file=sys.stderr)
             print(f"💡 Share this public key to allow others to verify your signatures", file=sys.stderr)
 
     except Exception as e:
@@ -151,16 +154,16 @@ def cmd_import(args):
 
         # Copy key file to default location
         import shutil
-        identity._ensure_key_directory()
+        identity.key_dir.mkdir(parents=True, exist_ok=True)
         shutil.copy(import_path, identity.private_key_path)
         identity.private_key_path.chmod(0o600)
 
         # Load and verify
-        identity._load_keys()
+        identity.load_keys()
 
         print("✅ Identity Imported Successfully")
         print()
-        print(f"🔐 Key ID: {identity.key_id}")
+        print(f"🔐 Key ID: {identity.get_key_id()}")
         print(f"📁 Imported to: {identity.private_key_path}")
         print()
         print(f"💡 You can now sign videos with this identity:")

@@ -2,7 +2,10 @@ import os
 import sys
 import numpy as np
 import subprocess
-from perceptual_hash import load_video_frames, extract_perceptual_features, compute_perceptual_hash, hamming_distance
+from core.perceptual_hash import load_video_frames, extract_perceptual_features, compute_perceptual_hash, hamming_distance
+
+# Tell pytest not to collect this module
+__test__ = False
 
 def test_video(video_path, max_frames=None, crf=28):
     compressed_path = video_path + f".crf{crf}.mp4"

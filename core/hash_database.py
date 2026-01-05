@@ -7,14 +7,18 @@ with associated metadata (platform, video_id, timestamp, etc.)
 
 import sqlite3
 import json
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
-from typing import List, Dict, Optional, Tuple
+from typing import Any
+from types import TracebackType
 import numpy as np
 
 
 class HashDatabase:
     """SQLite database for storing and querying perceptual hashes"""
+
+    db_path: Path
+    conn: sqlite3.Connection | None
 
     def __init__(self, db_path: str = "hashes.db"):
         """
@@ -33,7 +37,7 @@ class HashDatabase:
         cursor = self.conn.cursor()
 
         # Create hashes table
-        cursor.execute('''
+        _ = cursor.execute('''
             CREATE TABLE IF NOT EXISTS hashes (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 hash TEXT NOT NULL,
@@ -55,17 +59,17 @@ class HashDatabase:
         ''')
 
         # Create index on hash for fast lookups
-        cursor.execute('''
+        _ = cursor.execute('''
             CREATE INDEX IF NOT EXISTS idx_hash ON hashes(hash)
         ''')
 
         # Create index on platform for filtering
-        cursor.execute('''
+        _ = cursor.execute('''
             CREATE INDEX IF NOT EXISTS idx_platform ON hashes(platform)
         ''')
 
         # Create index on key_id for signature queries
-        cursor.execute('''
+        _ = cursor.execute('''
             CREATE INDEX IF NOT EXISTS idx_key_id ON hashes(key_id)
         ''')
 
@@ -76,10 +80,13 @@ class HashDatabase:
 
     def _migrate_schema(self):
         """Migrate existing databases to add signature columns"""
+        if not self.conn:
+             return
+             
         cursor = self.conn.cursor()
 
         # Check if signature columns exist
-        cursor.execute("PRAGMA table_info(hashes)")
+        _ = cursor.execute("PRAGMA table_info(hashes)")
         columns = [row[1] for row in cursor.fetchall()]
 
         # Add missing columns
@@ -93,25 +100,25 @@ class HashDatabase:
 
         for col_name, col_type in new_columns.items():
             if col_name not in columns:
-                cursor.execute(f'ALTER TABLE hashes ADD COLUMN {col_name} {col_type}')
+                _ = cursor.execute(f'ALTER TABLE hashes ADD COLUMN {col_name} {col_type}')
 
         self.conn.commit()
 
     def store_hash(
         self,
         hash_binary: np.ndarray,
-        video_id: Optional[str] = None,
-        platform: Optional[str] = None,
-        upload_date: Optional[str] = None,
-        file_path: Optional[str] = None,
-        frame_count: Optional[int] = None,
-        metadata: Optional[Dict] = None,
-        signature: Optional[str] = None,
-        public_key: Optional[str] = None,
-        key_id: Optional[str] = None,
-        signed_at: Optional[str] = None,
-        signature_version: Optional[str] = None
-    ) -> int:
+        video_id: str | None = None,
+        platform: str | None = None,
+        upload_date: str | None = None,
+        file_path: str | None = None,
+        frame_count: int | None = None,
+        metadata: dict[str, Any] | None = None,
+        signature: str | None = None,
+        public_key: str | None = None,
+        key_id: str | None = None,
+        signed_at: str | None = None,
+        signature_version: str | None = None
+    ) -> int | None:
         """
         Store perceptual hash in database
 
@@ -130,8 +137,11 @@ class HashDatabase:
             signature_version: Optional signature format version
 
         Returns:
-            Database row ID
+            Database row ID or None if failed
         """
+        if not self.conn:
+            return None
+            
         cursor = self.conn.cursor()
 
         # Convert hash to string and hex
@@ -143,7 +153,7 @@ class HashDatabase:
 
         # Insert or update
         try:
-            cursor.execute('''
+            _ = cursor.execute('''
                 INSERT INTO hashes (
                     hash, hash_hex, video_id, platform, upload_date,
                     file_path, frame_count, metadata, created_at,
@@ -158,7 +168,7 @@ class HashDatabase:
                 file_path,
                 frame_count,
                 metadata_json,
-                datetime.utcnow().isoformat(),
+                datetime.now(timezone.utc).isoformat(),
                 signature,
                 public_key,
                 key_id,
@@ -169,7 +179,7 @@ class HashDatabase:
             return cursor.lastrowid
         except sqlite3.IntegrityError:
             # Hash already exists - update metadata
-            cursor.execute('''
+            _ = cursor.execute('''
                 UPDATE hashes SET
                     video_id = COALESCE(?, video_id),
                     platform = COALESCE(?, platform),
@@ -200,16 +210,17 @@ class HashDatabase:
             self.conn.commit()
 
             # Return existing row ID
-            cursor.execute('SELECT id FROM hashes WHERE hash = ?', (hash_str,))
-            return cursor.fetchone()[0]
+            _ = cursor.execute('SELECT id FROM hashes WHERE hash = ?', (hash_str,))
+            result = cursor.fetchone()
+            return result[0] if result else None
 
     def query_similar(
         self,
         hash_binary: np.ndarray,
         threshold: int = 30,
-        platform: Optional[str] = None,
+        platform: str | None = None,
         limit: int = 100
-    ) -> List[Dict]:
+    ) -> list[dict[str, Any]]:
         """
         Query database for similar hashes
 
@@ -222,18 +233,21 @@ class HashDatabase:
         Returns:
             List of matching hash records with Hamming distances
         """
+        if not self.conn:
+             return []
+             
         cursor = self.conn.cursor()
 
         # Query all hashes (with platform filter if specified)
         if platform:
-            cursor.execute(
+            _ = cursor.execute(
                 '''SELECT id, hash, hash_hex, video_id, platform, upload_date, file_path, frame_count,
                    metadata, created_at, signature, public_key, key_id, signed_at, signature_version
                    FROM hashes WHERE platform = ?''',
                 (platform,)
             )
         else:
-            cursor.execute(
+            _ = cursor.execute(
                 '''SELECT id, hash, hash_hex, video_id, platform, upload_date, file_path, frame_count,
                    metadata, created_at, signature, public_key, key_id, signed_at, signature_version
                    FROM hashes'''
@@ -274,25 +288,33 @@ class HashDatabase:
 
         return results[:limit]
 
-    def get_stats(self) -> Dict:
+    def get_stats(self) -> dict[str, Any]:
         """
         Get database statistics
 
         Returns:
             Dictionary with statistics
         """
+        if not self.conn:
+            return {
+                'total_hashes': 0,
+                'by_platform': {},
+                'oldest_entry': None,
+                'newest_entry': None
+            }
+            
         cursor = self.conn.cursor()
 
         # Total hashes
-        cursor.execute('SELECT COUNT(*) FROM hashes')
+        _ = cursor.execute('SELECT COUNT(*) FROM hashes')
         total_hashes = cursor.fetchone()[0]
 
         # Hashes by platform
-        cursor.execute('SELECT platform, COUNT(*) FROM hashes GROUP BY platform')
+        _ = cursor.execute('SELECT platform, COUNT(*) FROM hashes GROUP BY platform')
         by_platform = {row[0] or 'unknown': row[1] for row in cursor.fetchall()}
 
         # Date range
-        cursor.execute('SELECT MIN(created_at), MAX(created_at) FROM hashes')
+        _ = cursor.execute('SELECT MIN(created_at), MAX(created_at) FROM hashes')
         date_range = cursor.fetchone()
 
         return {
@@ -312,8 +334,11 @@ class HashDatabase:
         Returns:
             True if deleted, False if not found
         """
+        if not self.conn:
+             return False
+             
         cursor = self.conn.cursor()
-        cursor.execute('DELETE FROM hashes WHERE id = ?', (hash_id,))
+        _ = cursor.execute('DELETE FROM hashes WHERE id = ?', (hash_id,))
         self.conn.commit()
         return cursor.rowcount > 0
 
@@ -322,10 +347,14 @@ class HashDatabase:
         if self.conn:
             self.conn.close()
 
+    def __del__(self):
+        """Destructor to ensure connection is closed"""
+        self.close()
+
     def __enter__(self):
         return self
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
+    def __exit__(self, exc_type: type[BaseException] | None, exc_val: BaseException | None, exc_tb: TracebackType | None):
         self.close()
 
 

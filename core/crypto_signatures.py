@@ -12,250 +12,222 @@ License: MIT
 
 import os
 import json
-import hashlib
 import base64
-from datetime import datetime
+import hashlib
 from pathlib import Path
-from typing import Dict, Optional, Tuple
+from datetime import datetime, timezone
+from typing import Any
 
-from cryptography.hazmat.primitives.asymmetric import ed25519
 from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives.asymmetric import ed25519
+
+# Assuming this import is intended based on the diff, despite the partial line.
+# If this is incorrect, please clarify.
+from .perceptual_hash import compute_match_score
 
 
 class SigilIdentity:
     """
-    Manages Ed25519 signing identities for Sigil perceptual hashes.
-
-    Design decisions:
-    - Ed25519: Modern, fast, 32-byte keys (vs 2048-bit RSA)
-    - Unencrypted storage: Like SSH keys (UX > paranoia for this threat model)
-    - Auto-generation: First --sign creates identity automatically
-    - Key ID: SHA256 fingerprint for human-readable identification
+    Manages cryptographic identity and signing for Sigil.
+    Uses Ed25519 for signing (fast, secure, small signatures).
     """
+    
+    DEFAULT_KEY_DIR = Path.home() / ".sigil" / "keys"
+    DEFAULT_PRIVATE_KEY = "id_ed25519"
+    DEFAULT_PUBLIC_KEY = "id_ed25519.pub"
 
-    DEFAULT_KEY_DIR = Path.home() / ".sigil"
-    DEFAULT_PRIVATE_KEY = DEFAULT_KEY_DIR / "identity.pem"
-    DEFAULT_PUBLIC_KEY = DEFAULT_KEY_DIR / "identity.pub"
-
-    def __init__(self, key_path: Optional[Path] = None):
+    def __init__(self, key_dir: str | None = None, private_key_name: str | None = None):
         """
-        Initialize identity manager.
-
+        Initialize Sigil Identity.
+        
         Args:
-            key_path: Custom path to private key file (default: ~/.sigil/identity.pem)
+            key_dir: Directory to store keys (default: ~/.sigil/keys)
+            private_key_name: Name of private key file (default: id_ed25519)
         """
-        self.private_key_path = Path(key_path) if key_path else self.DEFAULT_PRIVATE_KEY
-        self.public_key_path = self.private_key_path.with_suffix('.pub')
-
-        self.private_key: Optional[ed25519.Ed25519PrivateKey] = None
-        self.public_key: Optional[ed25519.Ed25519PublicKey] = None
-
-        # Load existing key or prepare for generation
+        if key_dir:
+            self.key_dir = Path(key_dir)
+        else:
+            self.key_dir = self.DEFAULT_KEY_DIR
+            
+        params_private = private_key_name or self.DEFAULT_PRIVATE_KEY
+        params_public = f"{params_private}.pub"
+        
+        self.private_key_path = self.key_dir / params_private
+        self.public_key_path = self.key_dir / params_public
+        
+        self.private_key: ed25519.Ed25519PrivateKey | None = None
+        self.public_key: ed25519.Ed25519PublicKey | None = None
+        
+        # Load keys if they exist
         if self.private_key_path.exists():
-            self._load_keys()
+            self.load_keys()
 
-    def _ensure_key_directory(self):
-        """Create ~/.sigil/ directory if it doesn't exist."""
-        self.private_key_path.parent.mkdir(parents=True, exist_ok=True)
-
-    def generate(self, overwrite: bool = False) -> Tuple[str, str]:
+    def generate_keys(self, force: bool = False) -> tuple[str, str]:
         """
-        Generate new Ed25519 keypair.
-
+        Generate a new Ed25519 key pair.
+        
         Args:
-            overwrite: If True, overwrite existing keys. If False, raise error if keys exist.
-
+            force: Overwrite existing keys if True
+            
         Returns:
             Tuple of (private_key_path, public_key_path)
-
-        Raises:
-            FileExistsError: If keys exist and overwrite=False
         """
-        if self.private_key_path.exists() and not overwrite:
-            raise FileExistsError(
-                f"Identity already exists at {self.private_key_path}. "
-                f"Use overwrite=True to replace, or delete the file manually."
-            )
-
-        self._ensure_key_directory()
-
-        # Generate Ed25519 keypair
-        private_key = ed25519.Ed25519PrivateKey.generate()
-        public_key = private_key.public_key()
-
-        # Serialize private key (PEM format, unencrypted)
-        private_pem = private_key.private_bytes(
+        if self.private_key_path.exists() and not force:
+            raise FileExistsError(f"Key already exists at {self.private_key_path}")
+            
+        self.key_dir.mkdir(parents=True, exist_ok=True)
+        
+        # Generate private key
+        self.private_key = ed25519.Ed25519PrivateKey.generate()
+        self.public_key = self.private_key.public_key()
+        
+        # Save private key
+        private_bytes = self.private_key.private_bytes(
             encoding=serialization.Encoding.PEM,
-            format=serialization.PrivateFormat.PKCS8,
-            encryption_algorithm=serialization.NoEncryption()  # Unencrypted for UX
+            format=serialization.PrivateFormat.OpenSSH,
+            encryption_algorithm=serialization.NoEncryption()
         )
-
-        # Serialize public key (PEM format)
-        public_pem = public_key.public_bytes(
-            encoding=serialization.Encoding.PEM,
-            format=serialization.PublicFormat.SubjectPublicKeyInfo
+        
+        with open(self.private_key_path, "wb") as f:
+            f.write(private_bytes)
+        
+        # Set permissions to 600 (read/write only by owner)
+        os.chmod(self.private_key_path, 0o600)
+            
+        # Save public key
+        public_bytes = self.public_key.public_bytes(
+            encoding=serialization.Encoding.OpenSSH,
+            format=serialization.PublicFormat.OpenSSH
         )
-
-        # Write to disk with restricted permissions
-        self.private_key_path.write_bytes(private_pem)
-        self.private_key_path.chmod(0o600)  # Read/write for owner only
-
-        self.public_key_path.write_bytes(public_pem)
-        self.public_key_path.chmod(0o644)  # Read for all, write for owner
-
-        # Load into memory
-        self.private_key = private_key
-        self.public_key = public_key
-
+        
+        with open(self.public_key_path, "wb") as f:
+            f.write(public_bytes)
+            
         return str(self.private_key_path), str(self.public_key_path)
 
-    def _load_keys(self):
-        """Load existing keys from disk."""
-        # Load private key
-        private_pem = self.private_key_path.read_bytes()
-        self.private_key = serialization.load_pem_private_key(
-            private_pem,
-            password=None  # No encryption
+    def load_keys(self):
+        """Load keys from disk"""
+        if not self.private_key_path.exists():
+            raise FileNotFoundError(f"No private key found at {self.private_key_path}")
+            
+        with open(self.private_key_path, "rb") as f:
+            private_bytes = f.read()
+            
+        self.private_key = serialization.load_ssh_private_key(
+            private_bytes,
+            password=None
         )
-
-        # Derive public key from private key
+        
+        # Derive public key
         if isinstance(self.private_key, ed25519.Ed25519PrivateKey):
             self.public_key = self.private_key.public_key()
         else:
-            raise ValueError(f"Invalid key type: {type(self.private_key)}. Expected Ed25519.")
+             raise ValueError("Key is not an Ed25519 key")
 
-    def ensure_identity(self) -> str:
-        """
-        Ensure identity exists, generating if necessary.
-        This is called automatically on first --sign usage.
-
-        Returns:
-            Key ID (SHA256 fingerprint)
-        """
-        if not self.private_key:
-            print(f"[Sigil] Generating new Ed25519 identity...")
-            priv_path, pub_path = self.generate()
-            print(f"[Sigil] ✓ Identity created: {self.key_id}")
-            print(f"[Sigil]   Private key: {priv_path}")
-            print(f"[Sigil]   Public key:  {pub_path}")
-            print(f"[Sigil]   (Keys stored unencrypted like SSH keys)")
-        return self.key_id
-
-    @property
-    def key_id(self) -> str:
-        """
-        Generate SHA256 fingerprint of public key (like SSH key fingerprints).
-        Format: "SHA256:abc123..."
-        """
+    def get_public_key_string(self) -> str:
+        """Get public key as OpenSSH string"""
         if not self.public_key:
-            raise ValueError("No identity loaded. Call generate() or ensure_identity() first.")
+            raise ValueError("Keys not loaded")
+            
+        public_bytes = self.public_key.public_bytes(
+            encoding=serialization.Encoding.OpenSSH,
+            format=serialization.PublicFormat.OpenSSH
+        )
+        return public_bytes.decode('utf-8').strip()
 
+    def get_key_id(self) -> str:
+        """Get key fingerprint (SHA256 of public key blob)"""
+        if not self.public_key:
+            raise ValueError("Keys not loaded")
+            
+        # Get raw bytes for fingerprinting (ignoring OpenSSH header)
         public_bytes = self.public_key.public_bytes(
             encoding=serialization.Encoding.Raw,
             format=serialization.PublicFormat.Raw
         )
+        return hashlib.sha256(public_bytes).hexdigest()
 
-        sha256_hash = hashlib.sha256(public_bytes).digest()
-        b64_hash = base64.b64encode(sha256_hash).decode('ascii').rstrip('=')
-
-        return f"SHA256:{b64_hash}"
-
-    def sign_hash(
-        self,
-        hash_hex: str,
-        metadata: Optional[Dict] = None
-    ) -> Dict:
+    def sign_hash(self, hash_hex: str, metadata: dict[str, str | dict] | None = None) -> dict[str, str | dict]:
         """
-        Sign a perceptual hash + metadata to prove ownership.
-
+        Cryptographically sign a perceptual hash.
+        
         Args:
-            hash_hex: 64-character hex representation of 256-bit hash
-            metadata: Optional metadata to include in claim (filename, timestamp, etc.)
-
+            hash_hex: Hex string of the perceptual hash
+            metadata: Optional dictionary of metadata to include in signature
+            
         Returns:
-            Complete signature document with claim + proof structure
-
-        Raises:
-            ValueError: If no identity loaded or invalid hash format
+            Dictionary containing signature, public key, and signed data
         """
         if not self.private_key:
-            raise ValueError("No identity loaded. Call ensure_identity() first.")
-
-        if not isinstance(hash_hex, str) or len(hash_hex) != 64:
-            raise ValueError(f"Invalid hash_hex. Expected 64-char hex string, got: {hash_hex}")
-
-        # Build claim (the data being signed)
-        claim = {
+            raise ValueError("Private key not loaded")
+            
+        # Create canonical payload to sign
+        # We sign: hash + metadata + timestamp
+        claim: dict[str, str | dict] = {
             "hash_hex": hash_hex,
             "metadata": metadata or {},
-            "timestamp": datetime.utcnow().isoformat() + "Z"
+            "timestamp": datetime.now(timezone.utc).isoformat().replace('+00:00', 'Z')
         }
-
+        
         # Canonical JSON for signing (sorted keys, no whitespace)
-        claim_json = json.dumps(claim, sort_keys=True, separators=(',', ':'))
-        claim_bytes = claim_json.encode('utf-8')
-
-        # Sign the claim
-        signature_bytes = self.private_key.sign(claim_bytes)
-
-        # Build proof (the cryptographic evidence)
-        proof = {
-            "signature": base64.b64encode(signature_bytes).decode('ascii'),
-            "public_key": base64.b64encode(
-                self.public_key.public_bytes(
-                    encoding=serialization.Encoding.Raw,
-                    format=serialization.PublicFormat.Raw
-                )
-            ).decode('ascii'),
-            "key_id": self.key_id,
-            "algorithm": "Ed25519",
-            "signed_at": claim["timestamp"]
-        }
-
-        # Return complete signature document
+        payload_bytes = json.dumps(claim, sort_keys=True, separators=(',', ':')).encode('utf-8')
+        
+        # Sign payload
+        signature_bytes = self.private_key.sign(payload_bytes)
+        signature_b64 = base64.b64encode(signature_bytes).decode('utf-8')
+        
         return {
             "claim": claim,
-            "proof": proof,
-            "anchors": [],  # Populated by web2 anchoring feature
+            "signature": signature_b64,
+            "public_key": self.get_public_key_string(),
+            "key_id": self.get_key_id(),
+            "algorithm": "Ed25519",
             "version": "1.0"
         }
 
     @staticmethod
-    def verify_signature(signature_doc: Dict) -> Tuple[bool, Optional[str]]:
+    def verify_signature(signature_doc: dict[str, str | dict]) -> tuple[bool, str | None]:
         """
-        Verify a signature document (can be called without loading identity).
-
+        Verify a Sigil signature.
+        
         Args:
-            signature_doc: Signature document from sign_hash()
-
+            signature_doc: Dictionary returned by sign_hash
+            
         Returns:
-            Tuple of (is_valid, error_message)
-            - (True, None) if signature is valid
-            - (False, "error reason") if invalid
+            (is_valid, error_message)
         """
         try:
-            # Extract components
             claim = signature_doc.get("claim")
-            proof = signature_doc.get("proof")
-
-            if not claim or not proof:
-                return False, "Missing 'claim' or 'proof' in signature document"
-
-            # Reconstruct canonical claim JSON
-            claim_json = json.dumps(claim, sort_keys=True, separators=(',', ':'))
-            claim_bytes = claim_json.encode('utf-8')
-
-            # Decode signature and public key
-            signature_bytes = base64.b64decode(proof["signature"])
-            public_key_bytes = base64.b64decode(proof["public_key"])
-
-            # Reconstruct Ed25519 public key
-            public_key = ed25519.Ed25519PublicKey.from_public_bytes(public_key_bytes)
-
-            # Verify signature
-            public_key.verify(signature_bytes, claim_bytes)
-
-            # If we reach here, signature is valid
+            signature_b64 = str(signature_doc.get("signature"))
+            public_key_str = str(signature_doc.get("public_key"))
+            
+            if not claim or not signature_b64 or not public_key_str:
+                return False, "Missing required fields"
+                
+            # Parse public key
+            # OpenSSH format: "ssh-ed25519 <base64> <comment>"
+            parts = public_key_str.split()
+            if len(parts) < 2:
+                return False, "Invalid public key format"
+                
+            key_type = parts[0]
+            if key_type != "ssh-ed25519":
+                return False, f"Unsupported key type: {key_type}"
+                
+            public_key_bytes = base64.b64decode(parts[1])
+            public_key = serialization.load_ssh_public_key(
+                f"{key_type} {parts[1]}".encode('utf-8')
+            )
+            
+            if not isinstance(public_key, ed25519.Ed25519PublicKey):
+                return False, "Not an Ed25519 key"
+                
+            # Reconstruct payload
+            payload_bytes = json.dumps(claim, sort_keys=True, separators=(',', ':')).encode('utf-8')
+            signature_bytes = base64.b64decode(signature_b64)
+            
+            # Verify
+            public_key.verify(signature_bytes, payload_bytes)
             return True, None
 
         except Exception as e:
@@ -271,10 +243,11 @@ class SigilIdentity:
         if not self.public_key:
             raise ValueError("No identity loaded.")
 
-        return self.public_key.public_bytes(
+        public_bytes = self.public_key.public_bytes(
             encoding=serialization.Encoding.PEM,
             format=serialization.PublicFormat.SubjectPublicKeyInfo
-        ).decode('ascii')
+        )
+        return public_bytes.decode('ascii')
 
 
 class SignatureManager:
@@ -282,12 +255,12 @@ class SignatureManager:
     High-level API for creating and managing signature files.
     """
 
-    def __init__(self, identity: Optional[SigilIdentity] = None):
+    def __init__(self, identity: SigilIdentity | None = None):
         """
         Initialize signature manager.
 
         Args:
-            identity: SigilIdentity instance (default: use ~/.sigil/identity.pem)
+            identity: SigilIdentity instance (default: use ~/.sigil/keys)
         """
         self.identity = identity or SigilIdentity()
 
@@ -295,8 +268,8 @@ class SignatureManager:
         self,
         hash_hex: str,
         output_path: Path,
-        video_filename: Optional[str] = None,
-        additional_metadata: Optional[Dict] = None
+        video_filename: str | None = None,
+        additional_metadata: dict[str, Any] | None = None
     ) -> Path:
         """
         Create and save a signature.json file.
@@ -311,10 +284,15 @@ class SignatureManager:
             Path to created signature file
         """
         # Ensure identity exists
-        self.identity.ensure_identity()
+        if not self.identity.private_key:
+            print("[Sigil] Generating new Ed25519 identity...")
+            priv, pub = self.identity.generate_keys()
+            print(f"[Sigil] ✓ Identity created: {self.identity.get_key_id()}")
+            print(f"[Sigil]   Private key: {priv}")
+            print(f"[Sigil]   Public key:  {pub}")
 
         # Build metadata
-        metadata = additional_metadata or {}
+        metadata: dict[str, Any] = additional_metadata or {}
         if video_filename:
             metadata["video_filename"] = video_filename
 
@@ -329,7 +307,7 @@ class SignatureManager:
         return output_path
 
     @staticmethod
-    def verify_signature_file(signature_path: Path) -> Tuple[bool, Dict]:
+    def verify_signature_file(signature_path: Path) -> tuple[bool, dict[str, Any]]:
         """
         Verify a signature.json file.
 
@@ -347,10 +325,10 @@ class SignatureManager:
             is_valid, error = SigilIdentity.verify_signature(signature_doc)
 
             info = {
-                "key_id": signature_doc.get("proof", {}).get("key_id"),
+                "key_id": signature_doc.get("key_id"), # flat structure in new sign_hash
                 "hash_hex": signature_doc.get("claim", {}).get("hash_hex"),
-                "signed_at": signature_doc.get("proof", {}).get("signed_at"),
-                "algorithm": signature_doc.get("proof", {}).get("algorithm"),
+                "signed_at": signature_doc.get("claim", {}).get("timestamp"),
+                "algorithm": signature_doc.get("algorithm"),
                 "anchors": signature_doc.get("anchors", []),
                 "error": error
             }
@@ -363,28 +341,29 @@ class SignatureManager:
 
 # Convenience functions for CLI usage
 
-def create_identity(key_path: Optional[Path] = None, overwrite: bool = False) -> str:
+def create_identity(key_dir: str | None = None, overwrite: bool = False) -> str:
     """Create new Sigil identity. Returns key_id."""
-    identity = SigilIdentity(key_path)
-    identity.generate(overwrite=overwrite)
-    return identity.key_id
+    identity = SigilIdentity(key_dir=key_dir)
+    identity.generate_keys(force=overwrite)
+    return identity.get_key_id()
 
 
-def sign_hash(hash_hex: str, metadata: Optional[Dict] = None, key_path: Optional[Path] = None) -> Dict:
+def sign_hash(hash_hex: str, metadata: dict[str, Any] | None = None, key_dir: str | None = None) -> dict[str, Any]:
     """Sign a hash with the default or specified identity."""
-    identity = SigilIdentity(key_path)
-    identity.ensure_identity()
+    identity = SigilIdentity(key_dir=key_dir)
+    if not identity.private_key:
+         identity.generate_keys()
     return identity.sign_hash(hash_hex, metadata)
 
 
-def verify_signature(signature_doc: Dict) -> Tuple[bool, Optional[str]]:
+def verify_signature(signature_doc: dict[str, Any]) -> tuple[bool, str | None]:
     """Verify a signature document. Returns (is_valid, error_message)."""
     return SigilIdentity.verify_signature(signature_doc)
 
 
-def get_key_id(key_path: Optional[Path] = None) -> str:
+def get_key_id(key_dir: str | None = None) -> str:
     """Get the key ID of the current identity."""
-    identity = SigilIdentity(key_path)
+    identity = SigilIdentity(key_dir=key_dir)
     if not identity.private_key:
         raise ValueError("No identity found. Generate one with create_identity() first.")
-    return identity.key_id
+    return identity.get_key_id()
