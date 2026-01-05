@@ -17,10 +17,10 @@
 
 import cv2
 import numpy as np
-from skimage import feature
+from typing import List, Dict, Optional, Union, Any
 
 # --- Perceptual Feature Extraction ---
-def extract_perceptual_features(video_frames):
+def extract_perceptual_features(video_frames: List[np.ndarray]) -> Dict[int, Dict[str, np.ndarray]]:
     """
     Extracts compression-robust perceptual features for each frame:
       - Edges (Canny)
@@ -43,7 +43,7 @@ def extract_perceptual_features(video_frames):
             kernel = cv2.getGaborKernel((21, 21), 5, np.deg2rad(theta), 10, 0.5)
             filtered = cv2.filter2D(frame, cv2.CV_32F, kernel)
             textures.append(filtered)
-        textures = np.stack(textures)
+        texture_stack = np.stack(textures)
 
         # 3. Saliency (Laplacian)
         saliency = cv2.Laplacian(frame, cv2.CV_64F)
@@ -56,14 +56,14 @@ def extract_perceptual_features(video_frames):
 
         features[frame_idx] = {
             'edges': edges,
-            'textures': textures,
+            'textures': texture_stack,
             'saliency': saliency,
             'color_hist': color_hist
         }
     return features
 
 # --- Perceptual Hash Computation ---
-def compute_perceptual_hash(features, hash_size=256, seed=42):
+def compute_perceptual_hash(features: Dict[Any, Any], hash_size: int = 256, seed: Optional[Union[int, str]] = 42) -> np.ndarray:
     """
     Computes a 256-bit perceptual hash from extracted features.
     
@@ -81,10 +81,10 @@ def compute_perceptual_hash(features, hash_size=256, seed=42):
     import hashlib
 
     # Handle seed types
+    real_seed: int
     if seed is None:
-        seed = 42
-    
-    if isinstance(seed, str):
+        real_seed = 42
+    elif isinstance(seed, str):
         # Try to convert to int (e.g. "42") to match default behavior
         try:
             real_seed = int(seed)
@@ -106,11 +106,10 @@ def compute_perceptual_hash(features, hash_size=256, seed=42):
         first['color_hist'].size
     )
     projection = np.random.randn(frame_len, hash_size)
-    n_frames = len(features)
+    
     projected_mean = np.zeros(hash_size)
-    t_proj = 0.0
+    
     for i, frame_features in enumerate(features.values()):
-        t0 = time.time()
         frame_vec = np.concatenate([
             frame_features['edges'].flatten(),
             frame_features['textures'].flatten(),
@@ -121,17 +120,15 @@ def compute_perceptual_hash(features, hash_size=256, seed=42):
         frame_vec = frame_vec / (np.linalg.norm(frame_vec) + 1e-8)
         projected = frame_vec @ projection
         projected_mean += (projected - projected_mean) / (i + 1)
-        t_proj += time.time() - t0
+        
     # Use median of all projected values for binarization
-    t0 = time.time()
     median_val = np.median(projected_mean)
     hash_bits = (projected_mean > median_val).astype(int)
-    # t1 = time.time()
-    # print(f"Projection time for {n_frames} frames: {t_proj:.2f} seconds. Median/bin time: {t1-t0:.2f} seconds.")
+    
     return hash_bits
 
 # --- Video Loading Utility ---
-def load_video_frames(path, max_frames=None):
+def load_video_frames(path: str, max_frames: Optional[int] = None) -> List[np.ndarray]:
     """
     Loads video frames from a file as a list of np.ndarray (BGR).
     Args:
@@ -155,7 +152,7 @@ def load_video_frames(path, max_frames=None):
     return frames
 
 # --- Hamming Distance ---
-def hamming_distance(hash1, hash2):
+def hamming_distance(hash1: np.ndarray, hash2: np.ndarray) -> Union[int, np.integer]:
     """
     Computes Hamming distance between two binary hashes.
     Args:

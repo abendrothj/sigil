@@ -3,7 +3,7 @@ import pytest
 import numpy as np
 import sys
 import subprocess
-from pathlib import Path
+from typing import List, Union
 from core.perceptual_hash import compute_perceptual_hash
 
 # Mock features for unit testing
@@ -51,7 +51,7 @@ class TestSecureSeedCLI:
     
     VIDEO_PATH = "experimental/test_videos/short_test.mp4"
 
-    def run_cli(self, args):
+    def run_cli(self, args: List[str]) -> str:
         cmd = [sys.executable, "-m", "cli.extract", self.VIDEO_PATH] + args
         result = subprocess.run(cmd, capture_output=True, text=True)
         assert result.returncode == 0, f"CLI failed: {result.stderr}"

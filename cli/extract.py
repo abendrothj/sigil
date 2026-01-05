@@ -17,7 +17,7 @@ import numpy as np
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from core.perceptual_hash import (
+from core.perceptual_hash import (  # noqa: E402
     load_video_frames,
     extract_perceptual_features,
     compute_perceptual_hash
