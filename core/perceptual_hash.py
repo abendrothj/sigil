@@ -126,8 +126,8 @@ def compute_perceptual_hash(features, hash_size=256, seed=42):
     t0 = time.time()
     median_val = np.median(projected_mean)
     hash_bits = (projected_mean > median_val).astype(int)
-    t1 = time.time()
-    print(f"Projection time for {n_frames} frames: {t_proj:.2f} seconds. Median/bin time: {t1-t0:.2f} seconds.")
+    # t1 = time.time()
+    # print(f"Projection time for {n_frames} frames: {t_proj:.2f} seconds. Median/bin time: {t1-t0:.2f} seconds.")
     return hash_bits
 
 # --- Video Loading Utility ---
